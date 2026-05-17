@@ -6,42 +6,42 @@ namespace CollectionHub.Data.Model
     public class MyUser
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Required]
-        [Display(Name= "Nome")]
+        [StringLength(100)]
+        [Display(Name = "Nome")]
         public string Name { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
+        [StringLength(150)]
         public string Email { get; set; } = string.Empty;
 
+        // Nunca guardar passwords normais
         [Required]
-        [Display(Name = "Password")]
         public string PasswordHash { get; set; } = string.Empty;
 
         [Required]
         [Display(Name = "Cargo")]
-        public string Role { get; set; } = string.Empty;
+        public string Role { get; set; } = "User";
 
-        public DateTime RegisterDate { get; set; }
+        public DateTime RegisterDate { get; set; } = DateTime.Now;
 
-        /// <summary>
-        /// Relacionamentos
-        /// </summary>
-        public ICollection<Transaction> Sales { get; set; } = new List<Transaction>();
+        // =========================
+        // RELACIONAMENTOS
+        // =========================
 
-        //public ICollection<Transaction> Purchases { get; set; } = new List<Transaction>();
+        // Itens do utilizador
+        public ICollection<UserItem> UserItems { get; set; }
+            = new List<UserItem>();
 
-        //public ICollection<UserItem> UserItems { get; set; } = new List<UserItem>();
+        // Transações como vendedor
+        public ICollection<Transaction> Sales { get; set; }
+            = new List<Transaction>();
 
+        // Transações como comprador
+        public ICollection<Transaction> Purchases { get; set; }
+            = new List<Transaction>();
     }
-    /// <summary>
-    /// Display(Name= "Nome")]
-    ///[DataType(data_type)]
-    ///[ForeignKey(nameof(fk__reference_variable))]
-    ///[StringLength(x)]
-    /// </summary>
-    /// <param name=""></param>
-
 }
