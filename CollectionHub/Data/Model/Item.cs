@@ -7,7 +7,7 @@ namespace CollectionHub.Data.Model
     public class Item
     {
         [Key]
-        public long Id { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [StringLength(100)]
@@ -25,7 +25,7 @@ namespace CollectionHub.Data.Model
         // FOREIGN KEY
         // =========================
 
-        public long CategoryId { get; set; }
+        public int CategoryId { get; set; }
 
         [ForeignKey(nameof(CategoryId))]
         public Category? Category { get; set; }

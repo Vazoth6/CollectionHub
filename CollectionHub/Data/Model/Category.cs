@@ -5,7 +5,7 @@ namespace CollectionHub.Data.Model
     public class Category
     {
         [Key]
-        public long Id { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [StringLength(100)]
