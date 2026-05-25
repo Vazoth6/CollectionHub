@@ -6,7 +6,7 @@ namespace CollectionHub.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
     {
-
+        public DbSet<MyUser> MyUsers { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Item> Items { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -32,7 +32,7 @@ namespace CollectionHub.Data
                 .WithMany(i => i.UserItems)
                 .HasForeignKey(ui => ui.ItemId);
 
-            // RELAÇÕES AMBÍGUAS: MyUser (Sales/Purchases) <-> Transaction (Seller/Buyer)
+            // Relações ambíguas: MyUser (Sales/Purchases) <-> Transaction (Seller/Buyer)
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.Seller)
                 .WithMany(u => u.Sales)
@@ -51,6 +51,15 @@ namespace CollectionHub.Data
                 .WithMany(i => i.Transactions)
                 .HasForeignKey(t => t.ItemId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<MyUser>()
+                .HasIndex(u => u.UserID)
+                .IsUnique(); // Impede que dois MyUsers liguem ao mesmo IdentityUser
+
+            // ⚠️ IMPORTANTE: Configurar que MyUser.UserID não é auto-gerado
+            modelBuilder.Entity<MyUser>()
+                .Property(u => u.UserID)
+                .HasMaxLength(450);  // Mesmo tamanho do IdentityUser.Id
         }
     }
 
