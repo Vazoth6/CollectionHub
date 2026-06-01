@@ -17,19 +17,19 @@ namespace CollectionHub.Data.Model
         [Display(Name = "Nome")]
         public string Name { get; set; } = string.Empty;
 
-        //[Required]
-        //[EmailAddress]
-        //[StringLength(150)]
-        //[RegularExpression("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", ErrorMessage = " O {0} não é um email válido. Insira um email válido.")]
-        //public string Email { get; set; } = string.Empty;
-
-        // Nunca guardar passwords normais
-        //[Required]
-        //public string PasswordHash { get; set; } = string.Empty;
-
         [Required]
         [Display(Name = "Cargo")]
-        public string Role { get; set; } = "User";
+        public string Role { get; set; } = "Utilizador";
+
+        /// <summary>
+        /// Número de telemóvel do utilizador
+        /// </summary>
+        [Display(Name = "Telemóvel")]
+        [StringLength(20)]
+        [RegularExpression(@"^(\+[0-9]{1,3})?[0-9]{9,12}$",
+            ErrorMessage = "O número de telemóvel deve conter apenas dígitos e pode começar opcionalmente com um + e o indicativo do país.")]
+        [Phone(ErrorMessage = "Formato de telemóvel inválido")]
+        public string? CellPhone { get; set; }
 
         /// <summary>
         /// Data de registro

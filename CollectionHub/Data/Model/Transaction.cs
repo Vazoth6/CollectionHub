@@ -58,6 +58,11 @@ namespace CollectionHub.Data.Model
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
+        [Required]
+        [StringLength(200)]
+        [Display(Name = "Endereço de Entrega")]
+        public string ShippingAddress { get; set; } = string.Empty;
+
         public string Status { get; set; } = "Concluída";
     }
 }
