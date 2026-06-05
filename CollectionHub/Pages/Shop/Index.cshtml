@@ -1,0 +1,77 @@
+@page
+@model CollectionHub.Pages.Shop.IndexModel
+
+@{
+    ViewData["Title"] = "Compras";
+}
+
+<h1 class="mb-4">Compras</h1>
+
+<form method="get" class="shop-filters mb-4">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="Search" class="form-label">Pesquisar</label>
+            <input asp-for="Search" class="form-control" placeholder="Nome ou descrição do produto" />
+        </div>
+
+        <div class="col-md-3">
+            <label asp-for="CategoryId" class="form-label">Categoria</label>
+            <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                <option value="">Todas</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label asp-for="MinPrice" class="form-label">Preço mín.</label>
+            <input asp-for="MinPrice" class="form-control" type="number" step="0.01" min="0" />
+        </div>
+
+        <div class="col-md-2">
+            <label asp-for="MaxPrice" class="form-label">Preço máx.</label>
+            <input asp-for="MaxPrice" class="form-control" type="number" step="0.01" min="0" />
+        </div>
+
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </div>
+</form>
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info">Não foram encontrados produtos.</div>
+}
+else
+{
+    <div class="shop-grid">
+        @foreach (var item in Model.Items)
+        {
+            var seller = item.UserItems.FirstOrDefault()?.User?.Name ?? "Vendedor desconhecido";
+            var image = string.IsNullOrWhiteSpace(item.ImageUrl)
+                ? "/images/no-image.png"
+                : item.ImageUrl;
+
+            <div class="shop-card">
+                <a asp-page="./Details" asp-route-id="@item.Id" class="shop-card-image-link">
+                    <img src="@image" alt="@item.Name" class="shop-card-image" />
+                </a>
+
+                <div class="shop-card-body">
+                    <h5 class="shop-card-title">@item.Name</h5>
+
+                    <p class="shop-card-price">@item.Price.ToString("0.00") €</p>
+
+                    <p class="shop-card-meta">
+                        <strong>Vendedor:</strong> @seller<br />
+                        <strong>Categoria:</strong> @(item.Category?.Name ?? "Sem categoria")<br />
+                        <strong>Submetido:</strong> @item.SubmittedAt.ToString("dd/MM/yyyy")
+                    </p>
+
+                    <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-outline-primary w-100">
+                        Ver produto
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}
