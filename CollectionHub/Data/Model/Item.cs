@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Net.ServerSentEvents;
 
 namespace CollectionHub.Data.Model
 {
@@ -11,33 +10,33 @@ namespace CollectionHub.Data.Model
 
         [Required]
         [StringLength(100)]
+        [Display(Name = "Nome")]
         public string Name { get; set; } = string.Empty;
 
-        [StringLength(500)]
+        [StringLength(1000)]
+        [Display(Name = "Descrição")]
         public string Description { get; set; } = string.Empty;
 
         [Column(TypeName = "decimal(18,2)")]
+        [Display(Name = "Preço")]
         public decimal Price { get; set; }
 
+        [Display(Name = "Estado")]
         public string Status { get; set; } = "Disponível";
 
-        // =========================
-        // FOREIGN KEY
-        // =========================
+        [Display(Name = "Imagem")]
+        public string? ImageUrl { get; set; }
+
+        [Display(Name = "Data de submissão")]
+        public DateTime SubmittedAt { get; set; } = DateTime.Now;
 
         public int CategoryId { get; set; }
 
         [ForeignKey(nameof(CategoryId))]
         public Category? Category { get; set; }
 
-        // =========================
-        // RELACIONAMENTOS
-        // =========================
+        public ICollection<UserItem> UserItems { get; set; } = new List<UserItem>();
 
-        public ICollection<UserItem> UserItems { get; set; }
-            = new List<UserItem>();
-
-        public ICollection<Transaction> Transactions { get; set; }
-            = new List<Transaction>();
+        public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }

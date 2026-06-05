@@ -1,0 +1,40 @@
+@page "{id:int}"
+@model CollectionHub.Pages.Shop.DetailsModel
+
+@{
+    ViewData["Title"] = Model.Item.Name;
+    var image = string.IsNullOrWhiteSpace(Model.Item.ImageUrl)
+        ? "/images/no-image.png"
+        : Model.Item.ImageUrl;
+}
+
+<a asp-page="./Index" class="btn btn-link mb-3">← Voltar às compras</a>
+
+<div class="product-details">
+    <div class="product-details-image-wrapper">
+        <img src="@image" alt="@Model.Item.Name" class="product-details-image" />
+    </div>
+
+    <div class="product-details-info">
+        <h1>@Model.Item.Name</h1>
+
+        <p class="product-details-price">@Model.Item.Price.ToString("0.00") €</p>
+
+        <dl class="row">
+            <dt class="col-sm-4">Vendedor</dt>
+            <dd class="col-sm-8">@Model.SellerName</dd>
+
+            <dt class="col-sm-4">Categoria</dt>
+            <dd class="col-sm-8">@(Model.Item.Category?.Name ?? "Sem categoria")</dd>
+
+            <dt class="col-sm-4">Estado</dt>
+            <dd class="col-sm-8">@Model.Item.Status</dd>
+
+            <dt class="col-sm-4">Data de submissão</dt>
+            <dd class="col-sm-8">@Model.Item.SubmittedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+        </dl>
+
+        <h4>Descrição</h4>
+        <p>@Model.Item.Description</p>
+    </div>
+</div>
