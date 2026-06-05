@@ -1,5 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
 using System;
@@ -19,8 +17,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using CollectionHub.Data; // Adicionar
-using CollectionHub.Data.Model; // Adicionar
 
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
@@ -32,11 +28,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
-<<<<<<< HEAD
         private readonly ApplicationDbContext _context;
-=======
-        private readonly ApplicationDbContext _context; // Adicionar DbContext
->>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
@@ -44,11 +36,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-<<<<<<< HEAD
             ApplicationDbContext context)
-=======
-            ApplicationDbContext context) // Adicionar context
->>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -56,11 +44,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
-<<<<<<< HEAD
             _context = context;
-=======
-            _context = context; // Inicializar context
->>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
         }
 
         [BindProperty]
@@ -72,106 +56,68 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-<<<<<<< HEAD
-            [Required(ErrorMessage = "O username é obrigatório.")]
-            [StringLength(50, ErrorMessage = "O username deve ter no máximo {1} caracteres.")]
-            [Display(Name = "Username")]
+            [Required(ErrorMessage = "O nome é obrigatório.")]
+            [StringLength(100, ErrorMessage = "O nome deve ter no máximo {1} caracteres.")]
+            [Display(Name = "Nome")]
+            public string Name { get; set; }
+
+            [Required(ErrorMessage = "O nome de utilizador é obrigatório.")]
+            [StringLength(50, ErrorMessage = "O nome de utilizador deve ter no máximo {1} caracteres.")]
+            [Display(Name = "Nome de utilizador")]
             public string UserName { get; set; }
 
-=======
->>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "O email é obrigatório.")]
+            [EmailAddress(ErrorMessage = "Email inválido.")]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-<<<<<<< HEAD
-            [Required(ErrorMessage = "O telemóvel é obrigatório.")]
             [Phone(ErrorMessage = "Formato de telemóvel inválido.")]
             [StringLength(20, ErrorMessage = "O telemóvel deve ter no máximo {1} caracteres.")]
             [Display(Name = "Telemóvel")]
-            public string PhoneNumber { get; set; }
+            public string CellPhone { get; set; }
 
-=======
->>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
-            [Required]
-            [StringLength(100,
-                ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
-                MinimumLength = 6)]
+            [Required(ErrorMessage = "A senha é obrigatória.")]
+            [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Senha")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password",
-                ErrorMessage = "The password and confirmation password do not match.")]
+            [Display(Name = "Confirmar senha")]
+            [Compare("Password", ErrorMessage = "A senha e a confirmação não coincidem.")]
             public string ConfirmPassword { get; set; }
-
-<<<<<<< HEAD
-=======
-            // NOVOS CAMPOS para MyUser
-            [Required(ErrorMessage = "O nome é obrigatório")]
-            [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
-            [Display(Name = "Nome Completo")]
-            public string Name { get; set; }
-
-            [Display(Name = "Telemóvel")]
-            [StringLength(20)]
-            [RegularExpression(@"^(\+[0-9]{1,3})?[0-9]{9,12}$",
-                ErrorMessage = "O número de telemóvel deve conter apenas dígitos e pode começar opcionalmente com um + e o indicativo do país.")]
-            [Phone(ErrorMessage = "Formato de telemóvel inválido")]
-            public string CellPhone { get; set; }
         }
 
->>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
         public async Task OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
-            ExternalLogins =
-                (await _signInManager.GetExternalAuthenticationSchemesAsync())
-                .ToList();
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-<<<<<<< HEAD
 
-            ExternalLogins =
-                (await _signInManager.GetExternalAuthenticationSchemesAsync())
-                .ToList();
-=======
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
->>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
 
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(
-                    user,
-                    Input.UserName,
-                    CancellationToken.None);
+                await _userStore.SetUserNameAsync(user, Input.UserName, CancellationToken.None);
+                await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
 
-                await _emailStore.SetEmailAsync(
-                    user,
-                    Input.Email,
-                    CancellationToken.None);
+                user.PhoneNumber = Input.CellPhone;
 
-                user.PhoneNumber = Input.PhoneNumber;
-
-                var result = await _userManager.CreateAsync(
-                    user,
-                    Input.Password);
+                var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
                     var myUser = new MyUser
                     {
-                        Name = Input.UserName,
+                        Name = Input.Name,
                         Role = "Utilizador",
-                        CellPhone = Input.PhoneNumber,
+                        CellPhone = Input.CellPhone,
                         UserID = user.Id,
                         RegisterDate = DateTime.Now
                     };
@@ -179,29 +125,12 @@ namespace CollectionHub.Areas.Identity.Pages.Account
                     _context.MyUsers.Add(myUser);
                     await _context.SaveChangesAsync();
 
-                    _logger.LogInformation(
-                        "User created a new account with password.");
-
-                    // CRIAR O MyUser ASSOCIADO
-                    var myUser = new MyUser
-                    {
-                        Name = Input.Name,
-                        CellPhone = Input.CellPhone,
-                        Role = "Utilizador", // Papel padrão
-                        RegisterDate = DateTime.Now,
-                        UserID = user.Id // Link com o IdentityUser
-                    };
-
-                    _context.MyUsers.Add(myUser);
-                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("User created a new account with password.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-                    var code =
-                        await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-                    code = WebEncoders.Base64UrlEncode(
-                        Encoding.UTF8.GetBytes(code));
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
@@ -217,34 +146,25 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
                     await _emailSender.SendEmailAsync(
                         Input.Email,
-                        "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        "Confirmar email",
+                        $"Confirme a sua conta clicando <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>aqui</a>.");
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
-                        return RedirectToPage(
-                            "RegisterConfirmation",
-                            new
-                            {
-                                email = Input.Email,
-                                returnUrl = returnUrl
-                            });
+                        return RedirectToPage("RegisterConfirmation", new
+                        {
+                            email = Input.Email,
+                            returnUrl = returnUrl
+                        });
                     }
-                    else
-                    {
-                        await _signInManager.SignInAsync(
-                            user,
-                            isPersistent: false);
 
-                        return LocalRedirect(returnUrl);
-                    }
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect(returnUrl);
                 }
 
                 foreach (var error in result.Errors)
                 {
-                    ModelState.AddModelError(
-                        string.Empty,
-                        error.Description);
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
@@ -260,8 +180,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             catch
             {
                 throw new InvalidOperationException(
-                    $"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor.");
+                    $"Não foi possível criar uma instância de '{nameof(IdentityUser)}'.");
             }
         }
 
@@ -269,8 +188,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         {
             if (!_userManager.SupportsUserEmail)
             {
-                throw new NotSupportedException(
-                    "The default UI requires a user store with email support.");
+                throw new NotSupportedException("O Identity requer suporte para email.");
             }
 
             return (IUserEmailStore<IdentityUser>)_userStore;
