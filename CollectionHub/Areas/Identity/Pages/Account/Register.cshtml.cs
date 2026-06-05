@@ -19,6 +19,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using CollectionHub.Data; // Adicionar
+using CollectionHub.Data.Model; // Adicionar
 
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
@@ -30,7 +32,11 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+<<<<<<< HEAD
         private readonly ApplicationDbContext _context;
+=======
+        private readonly ApplicationDbContext _context; // Adicionar DbContext
+>>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
@@ -38,7 +44,11 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
+<<<<<<< HEAD
             ApplicationDbContext context)
+=======
+            ApplicationDbContext context) // Adicionar context
+>>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -46,7 +56,11 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+<<<<<<< HEAD
             _context = context;
+=======
+            _context = context; // Inicializar context
+>>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
         }
 
         [BindProperty]
@@ -58,22 +72,28 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
         public class InputModel
         {
+<<<<<<< HEAD
             [Required(ErrorMessage = "O username é obrigatório.")]
             [StringLength(50, ErrorMessage = "O username deve ter no máximo {1} caracteres.")]
             [Display(Name = "Username")]
             public string UserName { get; set; }
 
+=======
+>>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
+<<<<<<< HEAD
             [Required(ErrorMessage = "O telemóvel é obrigatório.")]
             [Phone(ErrorMessage = "Formato de telemóvel inválido.")]
             [StringLength(20, ErrorMessage = "O telemóvel deve ter no máximo {1} caracteres.")]
             [Display(Name = "Telemóvel")]
             public string PhoneNumber { get; set; }
 
+=======
+>>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
             [Required]
             [StringLength(100,
                 ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
@@ -87,8 +107,24 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             [Compare("Password",
                 ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+<<<<<<< HEAD
+=======
+            // NOVOS CAMPOS para MyUser
+            [Required(ErrorMessage = "O nome é obrigatório")]
+            [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
+            [Display(Name = "Nome Completo")]
+            public string Name { get; set; }
+
+            [Display(Name = "Telemóvel")]
+            [StringLength(20)]
+            [RegularExpression(@"^(\+[0-9]{1,3})?[0-9]{9,12}$",
+                ErrorMessage = "O número de telemóvel deve conter apenas dígitos e pode começar opcionalmente com um + e o indicativo do país.")]
+            [Phone(ErrorMessage = "Formato de telemóvel inválido")]
+            public string CellPhone { get; set; }
         }
 
+>>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
         public async Task OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
@@ -100,10 +136,14 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
+<<<<<<< HEAD
 
             ExternalLogins =
                 (await _signInManager.GetExternalAuthenticationSchemesAsync())
                 .ToList();
+=======
+            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+>>>>>>> e36e4c8492b61be7c80cc8197886e10863bbdb73
 
             if (ModelState.IsValid)
             {
@@ -141,6 +181,19 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
                     _logger.LogInformation(
                         "User created a new account with password.");
+
+                    // CRIAR O MyUser ASSOCIADO
+                    var myUser = new MyUser
+                    {
+                        Name = Input.Name,
+                        CellPhone = Input.CellPhone,
+                        Role = "Utilizador", // Papel padrão
+                        RegisterDate = DateTime.Now,
+                        UserID = user.Id // Link com o IdentityUser
+                    };
+
+                    _context.MyUsers.Add(myUser);
+                    await _context.SaveChangesAsync();
 
                     var userId = await _userManager.GetUserIdAsync(user);
 
