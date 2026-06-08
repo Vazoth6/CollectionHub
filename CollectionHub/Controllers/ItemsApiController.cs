@@ -80,6 +80,7 @@ namespace CollectionHub.Controllers
                 Description = i.Description,
                 Price = i.Price,
                 Status = i.Status,
+                ImageUrl = i.ImageUrl,
                 CategoryId = i.CategoryId,
                 CategoryName = i.Category?.Name ?? "Sem Categoria",
                 SellerName = i.UserItems.FirstOrDefault()?.User?.Name ?? "Vendedor Desconhecido",

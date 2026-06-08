@@ -18,6 +18,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddHttpClient();
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 

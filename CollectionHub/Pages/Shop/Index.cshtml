@@ -1,77 +1,740 @@
-@page
+@page "/Shop"
 @model CollectionHub.Pages.Shop.IndexModel
-
 @{
-    ViewData["Title"] = "Compras";
+    ViewData["Title"] = "Marketplace - CollectionHub";
 }
 
-<h1 class="mb-4">Compras</h1>
-
-<form method="get" class="shop-filters mb-4">
-    <div class="row g-3">
-        <div class="col-md-4">
-            <label asp-for="Search" class="form-label">Pesquisar</label>
-            <input asp-for="Search" class="form-control" placeholder="Nome ou descrição do produto" />
-        </div>
-
-        <div class="col-md-3">
-            <label asp-for="CategoryId" class="form-label">Categoria</label>
-            <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
-                <option value="">Todas</option>
-            </select>
-        </div>
-
-        <div class="col-md-2">
-            <label asp-for="MinPrice" class="form-label">Preço mín.</label>
-            <input asp-for="MinPrice" class="form-control" type="number" step="0.01" min="0" />
-        </div>
-
-        <div class="col-md-2">
-            <label asp-for="MaxPrice" class="form-label">Preço máx.</label>
-            <input asp-for="MaxPrice" class="form-control" type="number" step="0.01" min="0" />
-        </div>
-
-        <div class="col-md-1 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+<div class="container-fluid px-4">
+    <!-- Hero Section -->
+    <div class="hero-section text-center py-5 mb-4">
+        <div class="container">
+            <h1 class="display-4 fw-bold text-white mb-3">Loja</h1>
+            <p class="lead text-white-50 mb-4">Descubra vídeo-jogos, cartas, moedas e muito mais de vendedores verificados</p>
+            @if (User.Identity.IsAuthenticated && (User.IsInRole("Vendedor") || User.IsInRole("Admin")))
+            {
+                <a asp-page="Create" class="btn btn-light btn-lg px-5">
+                    <i class="bi bi-plus-circle"></i> Vender Item
+                </a>
+            }
         </div>
     </div>
-</form>
 
-@if (!Model.Items.Any())
-{
-    <div class="alert alert-info">Não foram encontrados produtos.</div>
-}
-else
-{
-    <div class="shop-grid">
-        @foreach (var item in Model.Items)
-        {
-            var seller = item.UserItems.FirstOrDefault()?.User?.Name ?? "Vendedor desconhecido";
-            var image = string.IsNullOrWhiteSpace(item.ImageUrl)
-                ? "/images/no-image.png"
-                : item.ImageUrl;
+    <div class="container">
+        <div class="row g-4">
+            <!-- Sidebar com Filtros -->
+            <div class="col-lg-3">
+                <div class="filters-card">
+                    <div class="filters-header">
+                        <i class="bi bi-funnel"></i>
+                        <h5 class="mb-0">Filtros</h5>
+                    </div>
 
-            <div class="shop-card">
-                <a asp-page="./Details" asp-route-id="@item.Id" class="shop-card-image-link">
-                    <img src="@image" alt="@item.Name" class="shop-card-image" />
-                </a>
+                    <form method="get" id="filterForm">
+                        <!-- Categorias (Checkboxes) -->
+                        <div class="filter-section">
+                            <label class="filter-label">Categorias</label>
+                            <div class="categories-list">
+                                @foreach (var cat in Model.PredefinedCategories)
+                                {
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" class="form-check-input"
+                                               name="SelectedCategories"
+                                               id="cat_@cat.Name.Replace(" ", "_")"
+                                               value="@cat.Name"
+                                        @(Model.SelectedCategories != null && Model.SelectedCategories.Contains(cat.Name) ? "checked" : "")>
+                                        <label class="form-check-label" for="cat_@cat.Name.Replace(" ", "_")">
+                                            <i class="bi @cat.Icon"></i> @cat.Name
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
 
-                <div class="shop-card-body">
-                    <h5 class="shop-card-title">@item.Name</h5>
+                        <!-- Range de Preço -->
+                        <div class="filter-section">
+                            <label class="filter-label">Faixa de Preço</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">€</span>
+                                        <input type="number" class="form-control" name="MinPrice"
+                                               id="MinPrice" placeholder="0.25"
+                                               value="@Model.MinPrice"
+                                               step="0.01" min="0.25" max="5000" />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">€</span>
+                                        <input type="number" class="form-control" name="MaxPrice"
+                                               id="MaxPrice" placeholder="5000"
+                                               value="@Model.MaxPrice"
+                                               step="0.01" min="0.25" max="5000" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="price-range-hint">
+                                <small>€0.25 - €5.000</small>
+                            </div>
+                        </div>
 
-                    <p class="shop-card-price">@item.Price.ToString("0.00") €</p>
+                        <!-- Ordenação -->
+                        <div class="filter-section">
+                            <label class="filter-label">Ordenar por</label>
+                            <select class="form-select form-select-sm" name="SortBy" id="SortBy"
+                                    onchange="document.getElementById('filterForm').submit()">
+                                <option value="name_asc" selected="@(Model.SortBy == "name_asc")">Nome (A-Z)</option>
+                                <option value="name_desc" selected="@(Model.SortBy == "name_desc")">Nome (Z-A)</option>
+                                <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Preço (menor para maior)</option>
+                                <option value="price_desc" selected="@(Model.SortBy == "price_desc")">Preço (maior para menor)</option>
+                            </select>
+                        </div>
 
-                    <p class="shop-card-meta">
-                        <strong>Vendedor:</strong> @seller<br />
-                        <strong>Categoria:</strong> @(item.Category?.Name ?? "Sem categoria")<br />
-                        <strong>Submetido:</strong> @item.SubmittedAt.ToString("dd/MM/yyyy")
-                    </p>
-
-                    <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-outline-primary w-100">
-                        Ver produto
-                    </a>
+                        <!-- Botões de Ação -->
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-search"></i> Aplicar Filtros
+                            </button>
+                            <a href="/Shop" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-repeat"></i> Limpar Filtros
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
-        }
+
+            <!-- Grid de Itens -->
+            <div class="col-lg-9">
+                <!-- Barra de Pesquisa em cima do grid -->
+                <div class="search-bar-wrapper mb-4">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0"
+                               name="SearchTerm" id="SearchTermHeader"
+                               placeholder="Pesquisar itens por nome, descrição..."
+                               value="@Model.SearchTerm" />
+                        <button class="btn btn-primary" type="button" id="searchButton">
+                            <i class="bi bi-search"></i> Pesquisar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resultados Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-0">Itens Disponíveis</h4>
+                        <p class="text-muted small mb-0">
+                            <i class="bi bi-grid"></i> @Model.Items.Count() de @Model.TotalItems itens encontrados
+                        </p>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <span class="text-muted me-2">Visualização:</span>
+                        <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>
+                        <i class="bi bi-list-ul text-muted"></i>
+                    </div>
+                </div>
+
+                <!-- Grid -->
+                <div class="row g-4" id="itemsGrid">
+                    @if (Model.Items.Any())
+                    {
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="col-md-6 col-xl-4">
+                                <div class="item-card">
+                                    <div class="item-image">
+                                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid">
+                                        }
+                                        else
+                                        {
+                                            <div class="image-placeholder">
+                                                <i class="bi bi-box-seam"></i>
+                                            </div>
+                                        }
+                                        <span class="item-category">@item.CategoryName</span>
+                                    </div>
+                                    <div class="item-body">
+                                        <h5 class="item-title">@item.Name</h5>
+                                        <p class="item-description">
+                                            @(item.Description?.Length > 80 ? item.Description.Substring(0, 80) + "..." : item.Description)
+                                        </p>
+                                        <div class="item-price">
+                                            @item.Price.ToString("C")
+                                        </div>
+                                        <div class="item-footer">
+                                            <div class="seller-info">
+                                                <i class="bi bi-person-circle"></i>
+                                                <span>@item.SellerName</span>
+                                            </div>
+                                            @if (User.Identity.IsAuthenticated)
+                                            {
+                                                <button class="btn-buy" onclick="openBuyModal(@item.Id, '@item.Name', @item.Price)">
+                                                    <i class="bi bi-cart-plus"></i> Comprar
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <a href="/Identity/Account/Login" class="btn-buy btn-buy-outline">
+                                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h4>Nenhum item encontrado</h4>
+                                <p>Tente ajustar os filtros ou</p>
+                                @if (User.IsInRole("Vendedor") || User.IsInRole("Admin"))
+                                {
+                                    <a asp-page="Create" class="btn btn-primary">Vender um item</a>
+                                }
+                                else
+                                {
+                                    <span>volte mais tarde!</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Paginação -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-5">
+                        <ul class="pagination justify-content-center">
+                            @if (Model.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@GetPageUrl(Model.CurrentPage - 1)">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                            }
+
+                            @{
+                                int startPage = Math.Max(1, Model.CurrentPage - 2);
+                                int endPage = Math.Min(Model.TotalPages, startPage + 4);
+                                if (endPage - startPage < 4 && startPage > 1)
+                                {
+                                    startPage = Math.Max(1, endPage - 4);
+                                }
+                            }
+
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item"><a class="page-link" href="@GetPageUrl(1)">1</a></li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                            }
+
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                                </li>
+                            }
+
+                            @if (endPage < Model.TotalPages)
+                            {
+                                @if (endPage < Model.TotalPages - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                                <li class="page-item"><a class="page-link" href="@GetPageUrl(Model.TotalPages)">@Model.TotalPages</a></li>
+                            }
+
+                            @if (Model.CurrentPage < Model.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@GetPageUrl(Model.CurrentPage + 1)">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- Modal de Compra -->
+<div class="modal fade" id="buyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-cart-check text-success"></i> Confirmar Compra
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Buy">
+                <div class="modal-body pt-0">
+                    <input type="hidden" id="itemId" name="itemId" />
+                    <div class="text-center py-3">
+                        <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
+                            <i class="bi bi-gift fs-1 text-primary"></i>
+                        </div>
+                        <h6>Tem a certeza que deseja comprar</h6>
+                        <p class="fw-bold fs-5 text-primary" id="itemName"></p>
+                        <div class="alert alert-info">
+                            <strong>Preço total:</strong>
+                            <span id="itemPrice" class="fs-5 fw-bold"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="shippingAddress" class="form-label fw-bold">
+                            <i class="bi bi-geo-alt"></i> Endereço de Entrega
+                        </label>
+                        <textarea class="form-control" id="shippingAddress" name="shippingAddress"
+                                  rows="3" placeholder="Rua, Número, Cidade, Código Postal" required></textarea>
+                        <small class="text-muted">Forneça um endereço completo para a entrega</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg"></i> Confirmar Compra
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0 0 30px 30px;
+            margin-top: -1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Filters Card */
+        .filters-card {
+            background: white;
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+        }
+
+        .filters-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .filters-header i {
+                font-size: 1.25rem;
+                color: #667eea;
+            }
+
+            .filters-header h5 {
+                font-weight: 600;
+            }
+
+        .filter-section {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .categories-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+            .categories-list .form-check {
+                padding-left: 0;
+            }
+
+            .categories-list .form-check-input {
+                margin-right: 10px;
+                cursor: pointer;
+            }
+
+            .categories-list .form-check-label {
+                cursor: pointer;
+                font-size: 0.9rem;
+                color: #495057;
+            }
+
+                .categories-list .form-check-label i {
+                    margin-right: 8px;
+                    color: #6c757d;
+                    font-size: 0.85rem;
+                }
+
+        .price-range-hint {
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 0.7rem;
+        }
+
+        .filter-actions {
+            padding: 1.25rem 1.5rem;
+        }
+
+        /* Search Bar */
+        .search-bar-wrapper {
+            background: white;
+            border-radius: 50px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+            .search-bar-wrapper .input-group-text {
+                border-radius: 50px 0 0 50px;
+                border-right: none;
+            }
+
+            .search-bar-wrapper .form-control {
+                border-left: none;
+                border-right: none;
+            }
+
+                .search-bar-wrapper .form-control:focus {
+                    box-shadow: none;
+                    border-color: #ced4da;
+                }
+
+            .search-bar-wrapper .btn {
+                border-radius: 0 50px 50px 0;
+                padding: 0.75rem 1.5rem;
+            }
+
+        /* Item Card */
+        .item-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .item-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+            }
+
+        .item-image {
+            position: relative;
+            height: 180px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+            .item-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+            .image-placeholder i {
+                font-size: 4rem;
+                color: #dee2e6;
+            }
+
+        .item-category {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .item-body {
+            padding: 1rem;
+            flex: 1;
+        }
+
+        .item-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .item-description {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .item-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid #eef2f6;
+        }
+
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+            .seller-info i {
+                font-size: 0.9rem;
+            }
+
+        .btn-buy {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+            .btn-buy:hover {
+                transform: scale(1.02);
+                color: white;
+            }
+
+        .btn-buy-outline {
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+        }
+
+            .btn-buy-outline:hover {
+                background: #667eea;
+                color: white;
+            }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+            .empty-state i {
+                font-size: 4rem;
+                color: #dee2e6;
+                margin-bottom: 1rem;
+            }
+
+            .empty-state h4 {
+                margin-bottom: 0.5rem;
+                color: #495057;
+            }
+
+            .empty-state p {
+                color: #6c757d;
+                margin-bottom: 1rem;
+            }
+
+        /* Pagination */
+        .pagination {
+            gap: 6px;
+        }
+
+        .page-link {
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            color: #495057;
+            padding: 8px 14px;
+        }
+
+            .page-link:hover {
+                background: #667eea;
+                border-color: #667eea;
+                color: white;
+            }
+
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .hero-section {
+                border-radius: 0 0 20px 20px;
+            }
+
+                .hero-section h1 {
+                    font-size: 1.75rem;
+                }
+
+            .filters-card {
+                position: relative;
+                margin-bottom: 1rem;
+            }
+
+            .item-card {
+                margin-bottom: 0;
+            }
+
+            .search-bar-wrapper .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function openBuyModal(id, name, price) {
+            document.getElementById('itemId').value = id;
+            document.getElementById('itemName').innerText = name;
+            document.getElementById('itemPrice').innerHTML = new Intl.NumberFormat('pt-PT', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(price);
+            new bootstrap.Modal(document.getElementById('buyModal')).show();
+        }
+
+        // Função para submeter o formulário com os parâmetros atuais
+        function submitFilterForm() {
+            const form = document.getElementById('filterForm');
+            const searchValue = document.getElementById('SearchTermHeader').value;
+
+            // Atualizar o input de pesquisa escondido
+            let searchInput = document.querySelector('input[name="SearchTerm"]');
+            if (!searchInput) {
+                searchInput = document.createElement('input');
+                searchInput.type = 'hidden';
+                searchInput.name = 'SearchTerm';
+                form.appendChild(searchInput);
+            }
+            searchInput.value = searchValue;
+
+            form.submit();
+        }
+
+        // Event listener para o botão de pesquisa
+        document.getElementById('searchButton')?.addEventListener('click', function() {
+            submitFilterForm();
+        });
+
+        // Event listener para Enter na pesquisa
+        document.getElementById('SearchTermHeader')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitFilterForm();
+            }
+        });
+
+        // Auto-submit para checkboxes de categoria
+        document.querySelectorAll('input[name="SelectedCategories"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        });
+
+        // Auto-submit para range de preço com debounce
+        let priceTimeout;
+        document.getElementById('MinPrice')?.addEventListener('change', function() {
+            let value = parseFloat(this.value);
+            if (value < 0.25) this.value = 0.25;
+            if (value > 5000) this.value = 5000;
+            clearTimeout(priceTimeout);
+            priceTimeout = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 800);
+        });
+
+        document.getElementById('MaxPrice')?.addEventListener('change', function() {
+            let value = parseFloat(this.value);
+            if (value < 0.25) this.value = 0.25;
+            if (value > 5000) this.value = 5000;
+            clearTimeout(priceTimeout);
+            priceTimeout = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 800);
+        });
+    </script>
+}
+
+@functions {
+    public string GetPageUrl(int page)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrEmpty(Model.SearchTerm)) query.Add($"SearchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
+        if (Model.CategoryId.HasValue && Model.CategoryId.Value > 0) query.Add($"CategoryId={Model.CategoryId}");
+        if (Model.MinPrice.HasValue) query.Add($"MinPrice={Model.MinPrice}");
+        if (Model.MaxPrice.HasValue) query.Add($"MaxPrice={Model.MaxPrice}");
+        if (!string.IsNullOrEmpty(Model.SortBy)) query.Add($"SortBy={Model.SortBy}");
+        if (Model.SelectedCategories != null && Model.SelectedCategories.Any())
+        {
+            foreach (var cat in Model.SelectedCategories)
+            {
+                query.Add($"SelectedCategories={Uri.EscapeDataString(cat)}");
+            }
+        }
+        query.Add($"CurrentPage={page}");
+
+        return $"/Shop?{string.Join("&", query)}";
+    }
 }
