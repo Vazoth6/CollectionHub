@@ -1,4 +1,5 @@
 using CollectionHub.Data;
+using CollectionHub.Data.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
 })
+.AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddHttpClient();
@@ -47,5 +49,7 @@ app.MapRazorPages()
    .WithStaticAssets();
 
 app.MapControllers();
+
+await app.SeedDatabaseAsync();
 
 app.Run();

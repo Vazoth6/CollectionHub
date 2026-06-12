@@ -45,19 +45,8 @@ namespace CollectionHub.Pages.Shop
         public int TotalPages { get; set; }
         public int TotalItems { get; set; }
 
-        // Lista de categorias pré-definidas (para exibição no front-end)
-        public List<CategoryDisplayDto> PredefinedCategories { get; set; } = new()
-        {
-            new CategoryDisplayDto { Name = "Vídeo-Jogos", Icon = "bi-controller" },
-            new CategoryDisplayDto { Name = "Cartas Colecionáveis", Icon = "bi-suit-club" },
-            new CategoryDisplayDto { Name = "Moedas", Icon = "bi-coin" },
-            new CategoryDisplayDto { Name = "Selos", Icon = "bi-envelope-paper" },
-            new CategoryDisplayDto { Name = "Action Figures", Icon = "bi-robot" },
-            new CategoryDisplayDto { Name = "Livros", Icon = "bi-book" },
-            new CategoryDisplayDto { Name = "Automóveis Miniatura", Icon = "bi-car-front" },
-            new CategoryDisplayDto { Name = "Memorabilia", Icon = "bi-star" },
-            new CategoryDisplayDto { Name = "Outros", Icon = "bi-box" }
-        };
+        // Lista de categorias carregadas da API (dinâmica)
+        public List<CategoryDisplayDto> PredefinedCategories { get; set; } = new();
 
         public async Task OnGetAsync()
         {
@@ -65,12 +54,18 @@ namespace CollectionHub.Pages.Shop
             SelectedCategories ??= new List<string>();
 
             await LoadCategories();
+            await LoadPredefinedCategories();  // Carregar categorias da API com ícones
             await LoadItems();
         }
 
         public async Task<IActionResult> OnPostBuyAsync(int itemId, string shippingAddress)
         {
-            if (User.Identity.IsAuthenticated)
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToPage("/Identity/Account/Login", new { returnUrl = "/Shop" });
+            }
+
+            try
             {
                 var client = _httpClientFactory.CreateClient();
                 var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7000/";
@@ -94,11 +89,14 @@ namespace CollectionHub.Pages.Shop
                     var error = await response.Content.ReadAsStringAsync();
                     TempData["Error"] = "Erro ao realizar compra. Tente novamente.";
                 }
-
-                return RedirectToPage();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro na compra: {ex.Message}");
+                TempData["Error"] = "Erro ao conectar com o servidor. Tente novamente.";
             }
 
-            return RedirectToPage("/Identity/Account/Login", new { returnUrl = "/Shop" });
+            return RedirectToPage();
         }
 
         private async Task LoadCategories()
@@ -132,6 +130,81 @@ namespace CollectionHub.Pages.Shop
             }
         }
 
+        /// <summary>
+        /// Carrega as categorias da API e mapeia com os respetivos ícones
+        /// </summary>
+        private async Task LoadPredefinedCategories()
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7000/";
+                client.BaseAddress = new Uri(apiBaseUrl);
+
+                var response = await client.GetAsync("api/CategoriesApi");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var categories = JsonSerializer.Deserialize<List<CategoryResponseDto>>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    // Mapear categorias com ícones baseados no nome
+                    PredefinedCategories = categories?.Select(c => new CategoryDisplayDto
+                    {
+                        Name = c.Name,
+                        Icon = GetIconForCategory(c.Name)
+                    }).ToList() ?? new List<CategoryDisplayDto>();
+                }
+                else
+                {
+                    // Fallback em caso de erro na API
+                    PredefinedCategories = GetFallbackCategories();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao carregar categorias pré-definidas: {ex.Message}");
+                // Fallback para categorias hardcoded em caso de erro
+                PredefinedCategories = GetFallbackCategories();
+            }
+        }
+
+        /// <summary>
+        /// Retorna o ícone correspondente à categoria
+        /// </summary>
+        private string GetIconForCategory(string categoryName)
+        {
+            return categoryName switch
+            {
+                string s when s.Contains("Pokemon", StringComparison.OrdinalIgnoreCase) => "bi-pokeball",
+                string s when s.Contains("Yu-gi-oh", StringComparison.OrdinalIgnoreCase) => "bi-suit-diamond",
+                string s when s.Contains("Invizimal", StringComparison.OrdinalIgnoreCase) => "bi-dragon",
+                string s when s.Contains("Vídeo", StringComparison.OrdinalIgnoreCase) || s.Contains("Video", StringComparison.OrdinalIgnoreCase) => "bi-controller",
+                string s when s.Contains("Tabuleiro", StringComparison.OrdinalIgnoreCase) || s.Contains("Board", StringComparison.OrdinalIgnoreCase) => "bi-grid",
+                string s when s.Contains("Moeda", StringComparison.OrdinalIgnoreCase) || s.Contains("Coin", StringComparison.OrdinalIgnoreCase) => "bi-coin",
+                string s when s.Contains("Carta", StringComparison.OrdinalIgnoreCase) || s.Contains("Card", StringComparison.OrdinalIgnoreCase) => "bi-suit-club",
+                _ => "bi-box"
+            };
+        }
+
+        /// <summary>
+        /// Categorias de fallback em caso de erro na API
+        /// </summary>
+        private List<CategoryDisplayDto> GetFallbackCategories()
+        {
+            return new List<CategoryDisplayDto>
+            {
+                new CategoryDisplayDto { Name = "Carta Pokemon", Icon = "bi-pokeball" },
+                new CategoryDisplayDto { Name = "Carta Yu-gi-oh", Icon = "bi-suit-diamond" },
+                new CategoryDisplayDto { Name = "Carta Invizimal", Icon = "bi-dragon" },
+                new CategoryDisplayDto { Name = "Vídeo-jogo", Icon = "bi-controller" },
+                new CategoryDisplayDto { Name = "Jogo de Tabuleiro", Icon = "bi-grid" },
+                new CategoryDisplayDto { Name = "Moeda", Icon = "bi-coin" }
+            };
+        }
+
         private async Task LoadItems()
         {
             try
@@ -140,28 +213,28 @@ namespace CollectionHub.Pages.Shop
                 var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7000/";
                 client.BaseAddress = new Uri(apiBaseUrl);
 
-                var query = new ItemListQueryDto
-                {
-                    SearchTerm = SearchTerm,
-                    CategoryId = CategoryId,
-                    MinPrice = MinPrice,
-                    MaxPrice = MaxPrice,
-                    SortBy = SortBy ?? "name_asc",
-                    Page = CurrentPage,
-                    PageSize = 12
-                };
-
                 // Construir query string com suporte para múltiplas categorias
                 var queryParameters = new List<string>();
-                queryParameters.Add($"SearchTerm={Uri.EscapeDataString(query.SearchTerm ?? "")}");
-                queryParameters.Add($"CategoryId={query.CategoryId}");
-                queryParameters.Add($"MinPrice={query.MinPrice}");
-                queryParameters.Add($"MaxPrice={query.MaxPrice}");
-                queryParameters.Add($"SortBy={query.SortBy}");
-                queryParameters.Add($"Page={query.Page}");
-                queryParameters.Add($"PageSize={query.PageSize}");
 
-                // Adicionar categorias selecionadas à query
+                if (!string.IsNullOrEmpty(SearchTerm))
+                    queryParameters.Add($"SearchTerm={Uri.EscapeDataString(SearchTerm)}");
+
+                if (CategoryId.HasValue && CategoryId.Value > 0)
+                    queryParameters.Add($"CategoryId={CategoryId}");
+
+                if (MinPrice.HasValue)
+                    queryParameters.Add($"MinPrice={MinPrice}");
+
+                if (MaxPrice.HasValue)
+                    queryParameters.Add($"MaxPrice={MaxPrice}");
+
+                if (!string.IsNullOrEmpty(SortBy))
+                    queryParameters.Add($"SortBy={SortBy}");
+
+                queryParameters.Add($"Page={CurrentPage}");
+                queryParameters.Add($"PageSize=12");
+
+                // Adicionar categorias selecionadas à query (por nome)
                 if (SelectedCategories != null && SelectedCategories.Any())
                 {
                     foreach (var cat in SelectedCategories)
@@ -170,7 +243,7 @@ namespace CollectionHub.Pages.Shop
                     }
                 }
 
-                var queryString = "?" + string.Join("&", queryParameters);
+                var queryString = queryParameters.Any() ? "?" + string.Join("&", queryParameters) : "";
                 var response = await client.GetAsync($"api/ItemsApi{queryString}");
 
                 if (response.IsSuccessStatusCode)
@@ -181,7 +254,7 @@ namespace CollectionHub.Pages.Shop
                         PropertyNameCaseInsensitive = true
                     }) ?? new List<ItemResponseDto>();
 
-                    // CORREÇÃO: Usar variáveis temporárias para out parameters
+                    // Obter headers de paginação
                     if (response.Headers.TryGetValues("X-Total-Count", out var totalCountValues))
                     {
                         if (int.TryParse(totalCountValues.FirstOrDefault(), out int totalItems))
@@ -202,11 +275,14 @@ namespace CollectionHub.Pages.Shop
                     {
                         TotalPages = (int)Math.Ceiling(TotalItems / 12.0);
                     }
+
+                    if (TotalPages == 0) TotalPages = 1;
                 }
                 else
                 {
                     Items = new List<ItemResponseDto>();
                     TotalPages = 1;
+                    TotalItems = 0;
                 }
             }
             catch (Exception ex)
@@ -214,11 +290,12 @@ namespace CollectionHub.Pages.Shop
                 Console.WriteLine($"Erro ao carregar itens: {ex.Message}");
                 Items = new List<ItemResponseDto>();
                 TotalPages = 1;
+                TotalItems = 0;
             }
         }
     }
 
-    // DTO para exibição das categorias pré-definidas
+    // DTO para exibição das categorias
     public class CategoryDisplayDto
     {
         public string Name { get; set; } = string.Empty;

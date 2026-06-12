@@ -46,6 +46,11 @@ namespace CollectionHub.Controllers
                 dbQuery = dbQuery.Where(i => i.CategoryId == query.CategoryId.Value);
             }
 
+            if (query.SelectedCategories != null && query.SelectedCategories.Any())
+            {
+                dbQuery = dbQuery.Where(i => query.SelectedCategories.Contains(i.Category.Name));
+            }
+
             if (query.MinPrice.HasValue)
             {
                 dbQuery = dbQuery.Where(i => i.Price >= query.MinPrice.Value);
