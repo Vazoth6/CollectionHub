@@ -1,8 +1,10 @@
+using CollectionHub.Data.Model.DTOs;
+using CollectionHub.Models;
+using CollectionHub.Services;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
-using CollectionHub.Data.Model.DTOs;
 
 namespace CollectionHub.Pages.Shop
 {
@@ -10,17 +12,66 @@ namespace CollectionHub.Pages.Shop
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly ICartService _cartService;
 
-        public DetailsModel(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public DetailsModel(
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            ICartService cartService)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _cartService = cartService;
         }
 
         public ItemResponseDto? Item { get; set; }
         public DateTime? SubmittedAt { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
+        {
+            var item = await GetItemAsync(id);
+
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            Item = item;
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostAddToCartAsync(int itemId)
+        {
+            var item = await GetItemAsync(itemId);
+
+            if (item == null)
+            {
+                TempData["Error"] = "O item não foi encontrado.";
+                return RedirectToPage("/Shop/Index");
+            }
+
+            if (!string.Equals(item.Status, "Disponível", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "Este item não está disponível para compra.";
+                return RedirectToPage(new { id = itemId });
+            }
+
+            _cartService.AddToCart(new CartItem
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Price = item.Price,
+                ImageUrl = item.ImageUrl ?? string.Empty,
+                Quantity = 1,
+                SellerId = item.SellerId ?? 0,
+                SellerName = item.SellerName ?? "N/A"
+            });
+
+            TempData["Success"] = "Item adicionado ao carrinho.";
+            return RedirectToPage(new { id = itemId });
+        }
+
+        private async Task<ItemResponseDto?> GetItemAsync(int id)
         {
             try
             {
@@ -30,68 +81,22 @@ namespace CollectionHub.Pages.Shop
 
                 var response = await client.GetAsync($"api/ItemsApi/{id}");
 
-                if (response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode)
                 {
-                    var json = await response.Content.ReadAsStringAsync();
-                    Item = JsonSerializer.Deserialize<ItemResponseDto>(json, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                    return null;
                 }
-                else
+
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<ItemResponseDto>(json, new JsonSerializerOptions
                 {
-                    return NotFound();
-                }
+                    PropertyNameCaseInsensitive = true
+                });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao carregar item: {ex.Message}");
-                return NotFound();
+                return null;
             }
-
-            return Page();
-        }
-
-        public async Task<IActionResult> OnPostBuyAsync(int itemId, string shippingAddress)
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToPage("/Identity/Account/Login", new { returnUrl = $"/Shop/Details/{itemId}" });
-            }
-
-            try
-            {
-                var client = _httpClientFactory.CreateClient();
-                var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
-                client.BaseAddress = new Uri(apiBaseUrl);
-
-                var transactionData = new
-                {
-                    itemId = itemId,
-                    shippingAddress = shippingAddress
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(transactionData), System.Text.Encoding.UTF8, "application/json");
-                var response = await client.PostAsync("api/TransactionsApi", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["Success"] = "Compra realizada com sucesso!";
-                    return RedirectToPage("/Shop");
-                }
-                else
-                {
-                    var error = await response.Content.ReadAsStringAsync();
-                    TempData["Error"] = "Erro ao realizar compra. Tente novamente.";
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro na compra: {ex.Message}");
-                TempData["Error"] = "Erro ao conectar com o servidor. Tente novamente.";
-            }
-
-            return RedirectToPage(new { id = itemId });
         }
     }
 }

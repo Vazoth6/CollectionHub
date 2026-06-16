@@ -93,17 +93,20 @@
                         <hr />
 
                         <div class="d-flex gap-3">
-                            @if (User.Identity.IsAuthenticated)
+                            @if (Model.Item.Status == "Disponível")
                             {
-                                <button class="btn btn-success btn-lg flex-grow-1" onclick="openBuyModal(@Model.Item.Id, '@Model.Item.Name', @Model.Item.Price)">
-                                    <i class="bi bi-cart-plus"></i> Adicionar ao Carrinho
-                                </button>
+                                <form method="post" asp-page-handler="AddToCart" class="flex-grow-1">
+                                    <input type="hidden" name="itemId" value="@Model.Item.Id" />
+                                    <button type="submit" class="btn btn-success btn-lg w-100">
+                                        <i class="bi bi-cart-plus"></i> Adicionar ao Carrinho
+                                    </button>
+                                </form>
                             }
                             else
                             {
-                                <a href="/Identity/Account/Login?returnUrl=/Shop/Details/@Model.Item.Id" class="btn btn-primary btn-lg flex-grow-1">
-                                    <i class="bi bi-box-arrow-in-right"></i> Login para Comprar
-                                </a>
+                                <button class="btn btn-secondary btn-lg flex-grow-1" disabled>
+                                    <i class="bi bi-x-circle"></i> Item Indisponível
+                                </button>
                             }
                             <a href="/Shop" class="btn btn-outline-secondary btn-lg">
                                 <i class="bi bi-arrow-left"></i> Voltar
@@ -123,50 +126,6 @@
             <a href="/Shop" class="btn btn-primary">Voltar à Loja</a>
         </div>
     }
-</div>
-
-<!-- Modal de Compra -->
-<div class="modal fade" id="buyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">
-                    <i class="bi bi-cart-check text-success"></i> Confirmar Compra
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post" asp-page-handler="Buy">
-                <div class="modal-body pt-0">
-                    <input type="hidden" id="itemId" name="itemId" />
-                    <div class="text-center py-3">
-                        <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
-                            <i class="bi bi-gift fs-1 text-primary"></i>
-                        </div>
-                        <h6>Tem a certeza que deseja comprar</h6>
-                        <p class="fw-bold fs-5 text-primary" id="itemName"></p>
-                        <div class="alert alert-info">
-                            <strong>Preço total:</strong>
-                            <span id="itemPrice" class="fs-5 fw-bold"></span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="shippingAddress" class="form-label fw-bold">
-                            <i class="bi bi-geo-alt"></i> Endereço de Entrega
-                        </label>
-                        <textarea class="form-control" id="shippingAddress" name="shippingAddress"
-                                  rows="3" placeholder="Rua, Número, Cidade, Código Postal" required></textarea>
-                        <small class="text-muted">Forneça um endereço completo para a entrega</small>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-lg"></i> Confirmar Compra
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 @section Styles {
@@ -221,18 +180,4 @@
                 line-height: 1;
             }
     </style>
-}
-
-@section Scripts {
-    <script>
-        function openBuyModal(id, name, price) {
-            document.getElementById('itemId').value = id;
-            document.getElementById('itemName').innerText = name;
-            document.getElementById('itemPrice').innerHTML = new Intl.NumberFormat('pt-PT', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(price);
-            new bootstrap.Modal(document.getElementById('buyModal')).show();
-        }
-    </script>
 }

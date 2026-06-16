@@ -34,7 +34,10 @@
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacidade</a>
                         </li>
                     </ul>
-                    <partial name="_LoginPartial" />
+                    <div class="d-flex align-items-center gap-3">
+                        <partial name="_CartDropdown" />
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>

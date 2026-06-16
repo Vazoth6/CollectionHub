@@ -1,0 +1,501 @@
+﻿@page
+@model CollectionHub.Pages.Cart.CheckoutModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 mb-4">
+                <i class="bi bi-credit-card"></i> Checkout
+            </h1>
+            <hr />
+        </div>
+    </div>
+
+    @if (Model.Cart.Items.Any())
+    {
+        <!-- Stepper / Progresso -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="stepper-wrapper">
+                    <div class="stepper-item @(Model.CurrentStep >= 1 ? "completed" : "") @(Model.CurrentStep == 1 ? "active" : "")">
+                        <div class="step-counter">1</div>
+                        <div class="step-name">Revisão do Pedido</div>
+                    </div>
+                    <div class="stepper-item @(Model.CurrentStep >= 2 ? "completed" : "") @(Model.CurrentStep == 2 ? "active" : "")">
+                        <div class="step-counter">2</div>
+                        <div class="step-name">Pagamento</div>
+                    </div>
+                    <div class="stepper-item @(Model.CurrentStep >= 3 ? "completed" : "") @(Model.CurrentStep == 3 ? "active" : "")">
+                        <div class="step-counter">3</div>
+                        <div class="step-name">Confirmação</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passo 1: Revisão do Pedido -->
+        @if (Model.CurrentStep == 1)
+        {
+            <form method="post" asp-page-handler="Next">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0 mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-cart"></i> Itens do Pedido
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Produto</th>
+                                                <th>Preço</th>
+                                                <th>Quantidade</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model.Cart.Items)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-3">
+                                                            <div class="checkout-item-image">
+                                                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                                                {
+                                                                    <img src="@item.ImageUrl" alt="@item.Name">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="bi bi-box-seam"></i>
+                                                                }
+                                                            </div>
+                                                            <div>
+                                                                <h6 class="mb-0">@item.Name</h6>
+                                                                <small class="text-muted">Vendedor: @item.SellerName</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="align-middle">@item.Price.ToString("C")</td>
+                                                    <td class="align-middle">@item.Quantity</td>
+                                                    <td class="align-middle text-primary fw-bold">@item.Subtotal.ToString("C")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-geo-alt"></i> Endereço de Entrega
+                                </h5>
+                                <div class="mb-3">
+                                    <label asp-for="ShippingAddress" class="form-label fw-bold"></label>
+                                    <textarea asp-for="ShippingAddress" class="form-control" rows="4"
+                                              placeholder="Rua, Número, Andar, Cidade, Código Postal" required></textarea>
+                                    <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">Resumo do Pedido</h5>
+                                @foreach (var item in Model.Cart.Items)
+                                {
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>@item.Name <small class="text-muted">(x@(item.Quantity))</small></span>
+                                        <span>@item.Subtotal.ToString("C")</span>
+                                    </div>
+                                }
+                                <hr />
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>@Model.Cart.Items.Sum(i => i.Subtotal).ToString("C")</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Envio:</span>
+                                    <span class="text-success">Grátis</span>
+                                </div>
+                                <hr />
+                                <div class="d-flex justify-content-between mb-4">
+                                    <strong>Total:</strong>
+                                    <strong class="text-primary fs-4">@Model.Cart.Total.ToString("C")</strong>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                    Próximo <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        }
+
+        <!-- Passo 2: Pagamento -->
+        @if (Model.CurrentStep == 2)
+        {
+            <form method="post" asp-page-handler="Payment">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">
+                                    <i class="bi bi-credit-card"></i> Método de Pagamento
+                                </h5>
+
+                                <div class="payment-methods">
+                                    <div class="payment-option @(Model.PaymentMethod == "MBWay" ? "selected" : "")">
+                                        <input type="radio" name="PaymentMethod" id="mbway" value="MBWay"
+                                        @(Model.PaymentMethod == "MBWay" ? "checked" : "")>
+                                        <label for="mbway">
+                                            <div class="payment-icon">
+                                                <i class="bi bi-phone"></i>
+                                            </div>
+                                            <div class="payment-info">
+                                                <strong>MBWay</strong>
+                                                <small>Pague através do seu telemóvel</small>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div class="payment-option @(Model.PaymentMethod == "Multibanco" ? "selected" : "")">
+                                        <input type="radio" name="PaymentMethod" id="multibanco" value="Multibanco"
+                                        @(Model.PaymentMethod == "Multibanco" ? "checked" : "")>
+                                        <label for="multibanco">
+                                            <div class="payment-icon">
+                                                <i class="bi bi-receipt"></i>
+                                            </div>
+                                            <div class="payment-info">
+                                                <strong>Referência Multibanco</strong>
+                                                <small>Gere uma referência para pagamento</small>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div class="payment-option @(Model.PaymentMethod == "Cartao" ? "selected" : "")">
+                                        <input type="radio" name="PaymentMethod" id="cartao" value="Cartao"
+                                        @(Model.PaymentMethod == "Cartao" ? "checked" : "")>
+                                        <label for="cartao">
+                                            <div class="payment-icon">
+                                                <i class="bi bi-credit-card"></i>
+                                            </div>
+                                            <div class="payment-info">
+                                                <strong>Cartão de Crédito</strong>
+                                                <small>Visa, Mastercard, American Express</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                @if (Model.PaymentMethod == "Cartao")
+                                {
+                                    <div class="card-details mt-4" id="cardDetails">
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label class="form-label">Número do Cartão</label>
+                                                <input type="text" class="form-control" placeholder="1234 5678 9012 3456" />
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Validade</label>
+                                                <input type="text" class="form-control" placeholder="MM/AA" />
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">CVC</label>
+                                                <input type="text" class="form-control" placeholder="123" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                            <div class="card-body">
+                                <h5 class="card-title mb-4">Resumo do Pedido</h5>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Total:</span>
+                                    <strong class="text-primary fs-4">@Model.Cart.Total.ToString("C")</strong>
+                                </div>
+                                <hr />
+                                <div class="d-flex gap-2">
+                                    <button type="button" onclick="goBack()" class="btn btn-outline-secondary w-50">
+                                        <i class="bi bi-arrow-left"></i> Voltar
+                                    </button>
+                                    <button type="submit" class="btn btn-success w-50">
+                                        Finalizar Compra <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        }
+
+        <!-- Passo 3: Confirmação -->
+        @if (Model.CurrentStep == 3)
+        {
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 text-center p-4">
+                        <div class="confirmation-icon">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                        </div>
+                        <h2 class="mt-4">Pedido Confirmado!</h2>
+                        <p class="text-muted">Obrigado pela sua compra. O seu pedido foi processado com sucesso.</p>
+
+                        <div class="order-details text-start mt-4">
+                            <h5>Resumo do Pedido</h5>
+                            <hr />
+                            @foreach (var item in Model.Cart.Items)
+                            {
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>@item.Name (x@(item.Quantity))</span>
+                                    <span>@item.Subtotal.ToString("C")</span>
+                                </div>
+                            }
+                            <hr />
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Total Pago:</strong>
+                                <strong class="text-primary fs-5">@Model.Cart.Total.ToString("C")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Método de Pagamento:</span>
+                                <span>@Model.PaymentMethod</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Endereço de Entrega:</span>
+                                <span class="text-end">@Model.ShippingAddress</span>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <div class="d-flex gap-3">
+                            <a href="/Shop" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-shop"></i> Continuar Comprando
+                            </a>
+                            <a href="/Transactions/Index" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-receipt"></i> Ver Pedidos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-cart-x fs-1 text-muted"></i>
+            <h3 class="mt-3">O seu carrinho está vazio</h3>
+            <p class="text-muted">Adicione itens ao carrinho para continuar.</p>
+            <a href="/Shop" class="btn btn-primary mt-3">Continuar a Comprar</a>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        /* Stepper Styles */
+        .stepper-wrapper {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .stepper-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+            .stepper-item:not(:last-child):before {
+                content: '';
+                position: absolute;
+                top: 20px;
+                left: 50%;
+                width: 100%;
+                height: 2px;
+                background: #e0e0e0;
+                z-index: 1;
+            }
+
+            .stepper-item.completed:not(:last-child):before {
+                background: #28a745;
+            }
+
+        .step-counter {
+            width: 40px;
+            height: 40px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 10px;
+        }
+
+        .stepper-item.completed .step-counter {
+            background: #28a745;
+            color: white;
+        }
+
+        .stepper-item.active .step-counter {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        .step-name {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .stepper-item.active .step-name {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .stepper-item.completed .step-name {
+            color: #28a745;
+        }
+
+        /* Checkout Item Image */
+        .checkout-item-image {
+            width: 60px;
+            height: 60px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+            .checkout-item-image img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .checkout-item-image i {
+                font-size: 1.8rem;
+                color: #adb5bd;
+            }
+
+        /* Payment Methods */
+        .payment-option {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+
+            .payment-option.selected {
+                border-color: #28a745;
+                background: #f0fff4;
+            }
+
+            .payment-option input[type="radio"] {
+                display: none;
+            }
+
+            .payment-option label {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                padding: 15px;
+                cursor: pointer;
+                margin: 0;
+            }
+
+        .payment-icon {
+            width: 50px;
+            height: 50px;
+            background: #f8f9fa;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .payment-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .payment-info small {
+                font-size: 0.75rem;
+                color: #6c757d;
+            }
+
+        /* Confirmation */
+        .confirmation-icon i {
+            font-size: 5rem;
+        }
+
+        .order-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        /* Sticky */
+        .sticky-top {
+            position: sticky;
+            top: 20px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Mostrar/esconder campos do cartão baseado no método selecionado
+        document.querySelectorAll('input[name="PaymentMethod"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const cardDetails = document.getElementById('cardDetails');
+                if (this.value === 'Cartao') {
+                    cardDetails.style.display = 'block';
+                } else {
+                    cardDetails.style.display = 'none';
+                }
+            });
+        });
+
+        function goBack() {
+            window.location.href = '/Cart/Checkout?step=1';
+        }
+
+        // Marcar opção selecionada visualmente
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+
+                    // Trigger change event
+                    const event = new Event('change');
+                    radio.dispatchEvent(event);
+                }
+            });
+        });
+    </script>
+}
