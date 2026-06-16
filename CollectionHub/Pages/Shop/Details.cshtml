@@ -1,40 +1,238 @@
-@page "{id:int}"
+@page "/Shop/Details/{id:int}"
 @model CollectionHub.Pages.Shop.DetailsModel
-
 @{
-    ViewData["Title"] = Model.Item.Name;
-    var image = string.IsNullOrWhiteSpace(Model.Item.ImageUrl)
-        ? "/images/no-image.png"
-        : Model.Item.ImageUrl;
+    ViewData["Title"] = Model.Item?.Name ?? "Detalhes do Item";
 }
 
-<a asp-page="./Index" class="btn btn-link mb-3">← Voltar às compras</a>
+<div class="container mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-<div class="product-details">
-    <div class="product-details-image-wrapper">
-        <img src="@image" alt="@Model.Item.Name" class="product-details-image" />
-    </div>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-    <div class="product-details-info">
-        <h1>@Model.Item.Name</h1>
+    @if (Model.Item != null)
+    {
+        <div class="row g-4">
+            <!-- Imagem do Item -->
+            <div class="col-md-5">
+                <div class="card shadow-sm border-0">
+                    <div class="item-image-container">
+                        @if (!string.IsNullOrEmpty(Model.Item.ImageUrl))
+                        {
+                            <img src="@Model.Item.ImageUrl" alt="@Model.Item.Name" class="img-fluid rounded-3">
+                        }
+                        else
+                        {
+                            <div class="image-placeholder-large">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
 
-        <p class="product-details-price">@Model.Item.Price.ToString("0.00") €</p>
+            <!-- Informações do Item -->
+            <div class="col-md-7">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <span class="badge bg-primary mb-3">@Model.Item.CategoryName</span>
+                        <h1 class="display-6 fw-bold mb-3">@Model.Item.Name</h1>
 
-        <dl class="row">
-            <dt class="col-sm-4">Vendedor</dt>
-            <dd class="col-sm-8">@Model.SellerName</dd>
+                        <div class="mb-3">
+                            <div class="item-price-large">
+                                <span class="price-symbol">€</span>
+                                <span class="price-value">@Model.Item.Price.ToString("F2")</span>
+                            </div>
+                        </div>
 
-            <dt class="col-sm-4">Categoria</dt>
-            <dd class="col-sm-8">@(Model.Item.Category?.Name ?? "Sem categoria")</dd>
+                        <div class="mb-4">
+                            <h5><i class="bi bi-info-circle"></i> Descrição</h5>
+                            <p class="text-muted">@Model.Item.Description</p>
+                        </div>
 
-            <dt class="col-sm-4">Estado</dt>
-            <dd class="col-sm-8">@Model.Item.Status</dd>
+                        <div class="mb-4">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2 text-muted">
+                                        <i class="bi bi-person-circle fs-5"></i>
+                                        <div>
+                                            <small class="d-block">Vendedor</small>
+                                            <strong>@Model.Item.SellerName</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center gap-2 text-muted">
+                                        <i class="bi bi-calendar3 fs-5"></i>
+                                        <div>
+                                            <small class="d-block">Data de submissão</small>
+                                            <strong>@(Model.SubmittedAt?.ToString("dd/MM/yyyy") ?? "N/A")</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            <dt class="col-sm-4">Data de submissão</dt>
-            <dd class="col-sm-8">@Model.Item.SubmittedAt.ToString("dd/MM/yyyy HH:mm")</dd>
-        </dl>
+                        <div class="mb-4">
+                            <span class="badge @(Model.Item.Status == "Disponível" ? "bg-primary" : "bg-secondary") fs-6 px-3 py-2">
+                                <i class="bi bi-circle-fill me-1"></i> @Model.Item.Status
+                            </span>
+                        </div>
 
-        <h4>Descrição</h4>
-        <p>@Model.Item.Description</p>
+                        <hr />
+
+                        <div class="d-flex gap-3">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <button class="btn btn-success btn-lg flex-grow-1" onclick="openBuyModal(@Model.Item.Id, '@Model.Item.Name', @Model.Item.Price)">
+                                    <i class="bi bi-cart-plus"></i> Adicionar ao Carrinho
+                                </button>
+                            }
+                            else
+                            {
+                                <a href="/Identity/Account/Login?returnUrl=/Shop/Details/@Model.Item.Id" class="btn btn-primary btn-lg flex-grow-1">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login para Comprar
+                                </a>
+                            }
+                            <a href="/Shop" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger text-center py-5">
+            <i class="bi bi-exclamation-triangle fs-1"></i>
+            <h4 class="mt-2">Item não encontrado</h4>
+            <p>O item que procura não existe ou foi removido.</p>
+            <a href="/Shop" class="btn btn-primary">Voltar à Loja</a>
+        </div>
+    }
+</div>
+
+<!-- Modal de Compra -->
+<div class="modal fade" id="buyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-cart-check text-success"></i> Confirmar Compra
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Buy">
+                <div class="modal-body pt-0">
+                    <input type="hidden" id="itemId" name="itemId" />
+                    <div class="text-center py-3">
+                        <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
+                            <i class="bi bi-gift fs-1 text-primary"></i>
+                        </div>
+                        <h6>Tem a certeza que deseja comprar</h6>
+                        <p class="fw-bold fs-5 text-primary" id="itemName"></p>
+                        <div class="alert alert-info">
+                            <strong>Preço total:</strong>
+                            <span id="itemPrice" class="fs-5 fw-bold"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="shippingAddress" class="form-label fw-bold">
+                            <i class="bi bi-geo-alt"></i> Endereço de Entrega
+                        </label>
+                        <textarea class="form-control" id="shippingAddress" name="shippingAddress"
+                                  rows="3" placeholder="Rua, Número, Cidade, Código Postal" required></textarea>
+                        <small class="text-muted">Forneça um endereço completo para a entrega</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg"></i> Confirmar Compra
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .item-image-container {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .item-image-container img {
+                max-height: 350px;
+                object-fit: contain;
+            }
+
+        .image-placeholder-large {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+        }
+
+            .image-placeholder-large i {
+                font-size: 8rem;
+                color: #dee2e6;
+            }
+
+        .item-price-large {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+            .item-price-large .price-symbol {
+                font-size: 1.8rem;
+                font-weight: 400;
+                color: #000000;
+                vertical-align: baseline;
+            }
+
+            .item-price-large .price-value {
+                font-size: 3rem;
+                font-weight: 400;
+                color: #000000;
+                line-height: 1;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function openBuyModal(id, name, price) {
+            document.getElementById('itemId').value = id;
+            document.getElementById('itemName').innerText = name;
+            document.getElementById('itemPrice').innerHTML = new Intl.NumberFormat('pt-PT', {
+                style: 'currency',
+                currency: 'EUR'
+            }).format(price);
+            new bootstrap.Modal(document.getElementById('buyModal')).show();
+        }
+    </script>
+}
