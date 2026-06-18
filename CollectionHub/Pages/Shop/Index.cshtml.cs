@@ -210,7 +210,7 @@ namespace CollectionHub.Pages.Shop
             try
             {
                 var client = _httpClientFactory.CreateClient();
-                var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7000/";
+                var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
                 client.BaseAddress = new Uri(apiBaseUrl);
 
                 // Construir query string com suporte para múltiplas categorias

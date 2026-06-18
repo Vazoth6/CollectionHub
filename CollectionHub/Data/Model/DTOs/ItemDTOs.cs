@@ -25,6 +25,9 @@ namespace CollectionHub.Data.Model.DTOs
         [Required(ErrorMessage = "A categoria é obrigatória")]
         [Display(Name = "Categoria")]
         public int CategoryId { get; set; }
+
+        [Display(Name = "URL da Imagem")]
+        public string? ImageUrl { get; set; }
     }
 
     /// <summary>

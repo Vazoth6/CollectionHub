@@ -172,7 +172,7 @@ namespace CollectionHub.Controllers
         /// Cria um novo item
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Item>> PostItem([FromBody] CreateItemDto createItemDto)
+        public async Task<ActionResult<ItemResponseDto>> PostItem([FromBody] CreateItemDto createItemDto)
         {
             if (!ModelState.IsValid)
             {
@@ -191,7 +191,9 @@ namespace CollectionHub.Controllers
                 Description = createItemDto.Description ?? string.Empty,
                 Price = createItemDto.Price,
                 CategoryId = createItemDto.CategoryId,
-                Status = "Disponível"
+                Status = "Disponível",
+                ImageUrl = createItemDto.ImageUrl,
+                SubmittedAt = DateTime.Now
             };
 
             _context.Items.Add(item);
@@ -206,8 +208,27 @@ namespace CollectionHub.Controllers
             _context.UserItems.Add(userItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
+            // ⭐ RETORNAR APENAS DTO (evita ciclos de serialização)
+            var seller = await _context.MyUsers.FirstOrDefaultAsync(m => m.Id == myUserId);
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == item.CategoryId);
+
+            var response = new ItemResponseDto
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Price = item.Price,
+                Status = item.Status,
+                ImageUrl = item.ImageUrl,
+                CategoryId = item.CategoryId,
+                CategoryName = category?.Name ?? "Sem Categoria",
+                SellerName = seller?.Name ?? "Vendedor",
+                SellerId = myUserId
+            };
+
+            return CreatedAtAction(nameof(GetItem), new { id = item.Id }, response);
         }
+
 
         /// <summary>
         /// PUT: api/ItemsApi/5

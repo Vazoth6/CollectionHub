@@ -22,4 +22,8 @@
     <PackageReference Include="NuGet.Protocol" Version="7.6.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\items\" />
+  </ItemGroup>
+
 </Project>
