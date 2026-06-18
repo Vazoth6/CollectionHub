@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using System.Text.Json;
 using CollectionHub.Data.Model.DTOs;
-using Microsoft.AspNetCore.Identity;
 
 namespace CollectionHub.Pages.Shop
 {
@@ -14,23 +13,20 @@ namespace CollectionHub.Pages.Shop
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<CreateModel> _logger;
 
         public CreateModel(
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            IWebHostEnvironment webHostEnvironment)
+            ILogger<CreateModel> logger)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
-            _webHostEnvironment = webHostEnvironment;
+            _logger = logger;
         }
 
         [BindProperty]
         public CreateItemDto CreateItem { get; set; } = new();
-
-        [BindProperty]
-        public IFormFile? ImageFile { get; set; }
 
         public List<SelectListItem> CategoriesSelectList { get; set; } = new();
 
@@ -43,34 +39,13 @@ namespace CollectionHub.Pages.Shop
         {
             try
             {
-                // Remove ImageUrl validation if no image is uploaded
-                if (ImageFile == null || ImageFile.Length == 0)
-                {
-                    ModelState.Remove(nameof(CreateItem.ImageUrl));
-                }
-
                 if (!ModelState.IsValid)
                 {
                     await LoadCategories();
                     return Page();
                 }
 
-                // Process image if provided
-                string? imageUrl = null;
-                if (ImageFile != null && ImageFile.Length > 0)
-                {
-                    imageUrl = await SaveImageAsync(ImageFile);
-                    if (imageUrl == null)
-                    {
-                        TempData["Error"] = "Erro ao processar a imagem.";
-                        await LoadCategories();
-                        return Page();
-                    }
-                }
-
-                // Get authentication cookie
                 var cookie = Request.Headers["Cookie"].ToString();
-
                 var client = _httpClientFactory.CreateClient();
                 var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
                 client.BaseAddress = new Uri(apiBaseUrl);
@@ -80,14 +55,13 @@ namespace CollectionHub.Pages.Shop
                     client.DefaultRequestHeaders.Add("Cookie", cookie);
                 }
 
-                // Prepare data without ImageUrl if null
                 var itemData = new
                 {
                     CreateItem.Name,
                     CreateItem.Description,
                     CreateItem.Price,
                     CreateItem.CategoryId,
-                    ImageUrl = imageUrl
+                    CreateItem.ImageUrl
                 };
 
                 var json = JsonSerializer.Serialize(itemData);
@@ -110,6 +84,7 @@ namespace CollectionHub.Pages.Shop
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Erro: {ex.Message}");
                 TempData["Error"] = $"Erro: {ex.Message}";
                 await LoadCategories();
                 return Page();
@@ -169,48 +144,6 @@ namespace CollectionHub.Pages.Shop
             }).ToList();
 
             return Task.CompletedTask;
-        }
-
-        private async Task<string?> SaveImageAsync(IFormFile imageFile)
-        {
-            try
-            {
-                // Validar tamanho (2MB)
-                if (imageFile.Length > 2 * 1024 * 1024)
-                {
-                    return null;
-                }
-
-                // Validar tipo
-                var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-                if (!validTypes.Contains(imageFile.ContentType))
-                {
-                    return null;
-                }
-
-                // Criar pasta se não existir
-                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "items");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                // Gerar nome único
-                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imageFile.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                // Guardar ficheiro
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await imageFile.CopyToAsync(fileStream);
-                }
-
-                return $"/images/items/{uniqueFileName}";
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

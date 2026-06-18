@@ -30,7 +30,7 @@
                         </div>
                     }
 
-                    <form method="post" enctype="multipart/form-data">
+                    <form method="post">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <!-- Nome do Item -->
@@ -38,8 +38,7 @@
                             <label asp-for="CreateItem.Name" class="form-label fw-bold">
                                 <i class="bi bi-tag"></i> Nome do Item
                             </label>
-                            <input asp-for="CreateItem.Name" class="form-control form-control-lg"
-                                   placeholder="Nome" />
+                            <input asp-for="CreateItem.Name" class="form-control form-control-lg" placeholder="Nome" />
                             <span asp-validation-for="CreateItem.Name" class="text-danger"></span>
                             <small class="text-muted">máx. 100 caracteres</small>
                         </div>
@@ -62,8 +61,7 @@
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">€</span>
-                                    <input asp-for="CreateItem.Price" class="form-control"
-                                           placeholder=". para cêntimos" step="0.01" />
+                                    <input asp-for="CreateItem.Price" class="form-control" placeholder="0.00" step="0.01" />
                                 </div>
                                 <span asp-validation-for="CreateItem.Price" class="text-danger"></span>
                             </div>
@@ -72,37 +70,26 @@
                                 <label asp-for="CreateItem.CategoryId" class="form-label fw-bold">
                                     <i class="bi bi-grid"></i> Categoria
                                 </label>
-                                <select asp-for="CreateItem.CategoryId" class="form-select"
-                                        asp-items="Model.CategoriesSelectList">
+                                <select asp-for="CreateItem.CategoryId" class="form-select" asp-items="Model.CategoriesSelectList">
                                     <option value="">-- Selecione uma Categoria --</option>
                                 </select>
                                 <span asp-validation-for="CreateItem.CategoryId" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <!-- Imagem (Upload) - SEM VALIDAÇÃO NO ASP-FOR -->
+                        <!-- ⭐ APENAS URL (SEM FILE INPUT) -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-image"></i> Imagem do Item (Opcional)
+                            <label asp-for="CreateItem.ImageUrl" class="form-label fw-bold">
+                                <i class="bi bi-link-45deg"></i> URL da Imagem (Opcional)
                             </label>
-                            <div class="drop-zone" id="dropZone">
-                                <div class="drop-zone-content">
-                                    <i class="bi bi-cloud-upload fs-1 text-primary"></i>
-                                    <p class="mb-1">Arraste e solte uma imagem aqui</p>
-                                    <small class="text-muted">ou clique para selecionar</small>
-                                    <input type="file" class="d-none" id="imageUpload"
-                                           accept="image/*" name="ImageFile" />
-                                </div>
-                                <div class="drop-zone-preview d-none" id="imagePreview">
-                                    <img id="previewImage" src="#" alt="Preview" />
-                                    <button type="button" class="btn btn-sm btn-danger mt-2" id="removeImage">
-                                        <i class="bi bi-x"></i> Remover
-                                    </button>
-                                </div>
+                            <input asp-for="CreateItem.ImageUrl" class="form-control" placeholder="https://exemplo.com/imagem.jpg" />
+                            <span asp-validation-for="CreateItem.ImageUrl" class="text-danger"></span>
+                            <small class="text-muted">
+                                Insira o URL de uma imagem pública (Imgur, Flickr, etc.)
+                            </small>
+                            <div class="mt-2">
+                                <img id="imagePreview" src="#" alt="Preview" style="max-height: 150px; display:none; border-radius: 8px;" />
                             </div>
-                            <small class="text-muted">Formatos suportados: JPG, PNG, GIF, WEBP. Máx. 2MB</small>
-                            <span class="text-danger" id="imageError"></span>
-                            <!-- REMOVIDO: asp-validation-for="CreateItem.ImageUrl" -->
                         </div>
 
                         <hr />
@@ -126,8 +113,8 @@
                     <ul class="small text-muted mb-0">
                         <li>Use um título claro e descritivo</li>
                         <li>Adicione uma descrição detalhada do produto</li>
-                        <li>Selecione a categoria correta para melhor visibilidade</li>
-                        <li>Adicione uma imagem de qualidade do produto</li>
+                        <li>Selecione a categoria correta</li>
+                        <li>Adicione o URL de uma imagem de qualidade</li>
                     </ul>
                 </div>
             </div>
@@ -135,151 +122,24 @@
     </div>
 </div>
 
-@section Styles {
-    <style>
-        /* Drop Zone */
-        .drop-zone {
-            border: 2px dashed #ced4da;
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-            .drop-zone:hover {
-                border-color: #667eea;
-                background: #f8f9ff;
-            }
-
-            .drop-zone.dragover {
-                border-color: #667eea;
-                background: #eef1ff;
-            }
-
-        .drop-zone-content {
-            pointer-events: none;
-        }
-
-        .drop-zone-preview {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-            .drop-zone-preview img {
-                max-width: 100%;
-                max-height: 250px;
-                border-radius: 8px;
-                object-fit: contain;
-            }
-
-            .drop-zone-preview .btn {
-                position: absolute;
-                top: -10px;
-                right: -10px;
-                border-radius: 50%;
-                width: 32px;
-                height: 32px;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-    </style>
-}
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
     <script>
-        // Drop Zone para imagem
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('imageUpload');
-        const previewContainer = document.getElementById('imagePreview');
-        const previewImage = document.getElementById('previewImage');
-        const removeBtn = document.getElementById('removeImage');
-        const imageError = document.getElementById('imageError');
+        // ⭐ PREVIEW DA IMAGEM A PARTIR DO URL
+        const urlInput = document.getElementById('CreateItem_ImageUrl');
+        const preview = document.getElementById('imagePreview');
 
-        // Clique para abrir seletor de ficheiros
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        // Drag and Drop
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                handleFile(e.dataTransfer.files[0]);
+        urlInput.addEventListener('input', function() {
+            const url = this.value.trim();
+            if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                preview.src = url;
+                preview.style.display = 'block';
+                preview.onerror = function() {
+                    this.style.display = 'none';
+                };
+            } else {
+                preview.style.display = 'none';
             }
-        });
-
-        // Seleção de ficheiro
-        fileInput.addEventListener('change', function() {
-            if (this.files.length) {
-                handleFile(this.files[0]);
-            }
-        });
-
-        function handleFile(file) {
-            imageError.textContent = '';
-            
-            // Validar tamanho (2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                imageError.textContent = 'A imagem é muito grande. Máximo 2MB.';
-                fileInput.value = '';
-                return;
-            }
-
-            // Validar tipo
-            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            if (!validTypes.includes(file.type)) {
-                imageError.textContent = 'Formato de imagem não suportado. Use JPG, PNG, GIF ou WEBP.';
-                fileInput.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                document.querySelector('.drop-zone-content').classList.add('d-none');
-                previewContainer.classList.remove('d-none');
-                dropZone.style.borderColor = '#28a745';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Remover imagem
-        removeBtn.addEventListener('click', function() {
-            fileInput.value = '';
-            previewContainer.classList.add('d-none');
-            document.querySelector('.drop-zone-content').classList.remove('d-none');
-            dropZone.style.borderColor = '#ced4da';
-            imageError.textContent = '';
-        });
-
-        // Validação de preço
-        document.querySelector('input[name="CreateItem.Price"]')?.addEventListener('input', function() {
-            let value = parseFloat(this.value);
-            if (value < 0) this.value = 0;
-            if (value > 999999.99) this.value = 999999.99;
         });
     </script>
 }
