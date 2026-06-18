@@ -4,6 +4,7 @@ using CollectionHub.Services;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,11 +37,31 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+/* Swagger */
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CollectionHub API",
+        Version = "v1",
+        Description = "API da aplicação CollectionHub"
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "CollectionHub API v1");
+        options.RoutePrefix = "swagger";
+    });
 }
 else
 {
