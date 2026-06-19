@@ -13,20 +13,26 @@ namespace CollectionHub.Pages.Shop
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<CreateModel> _logger;
 
         public CreateModel(
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
+            IWebHostEnvironment webHostEnvironment,
             ILogger<CreateModel> logger)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _webHostEnvironment = webHostEnvironment;
             _logger = logger;
         }
 
         [BindProperty]
         public CreateItemDto CreateItem { get; set; } = new();
+
+        [BindProperty]
+        public IFormFile? ImageFile { get; set; }
 
         public List<SelectListItem> CategoriesSelectList { get; set; } = new();
 
@@ -39,12 +45,45 @@ namespace CollectionHub.Pages.Shop
         {
             try
             {
+                _logger.LogInformation("=== ONPOSTASYNC START ===");
+
                 if (!ModelState.IsValid)
                 {
                     await LoadCategories();
                     return Page();
                 }
 
+                // ⭐ PROCESSAR IMAGEM
+                string? imageUrl = null;
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    _logger.LogInformation($"A processar imagem: {ImageFile.FileName}, {ImageFile.Length} bytes");
+
+                    if (ImageFile.Length > 5 * 1024 * 1024)
+                    {
+                        TempData["Error"] = "A imagem é muito grande. Máximo 5MB.";
+                        await LoadCategories();
+                        return Page();
+                    }
+
+                    var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+                    if (!validTypes.Contains(ImageFile.ContentType))
+                    {
+                        TempData["Error"] = "Formato de imagem não suportado.";
+                        await LoadCategories();
+                        return Page();
+                    }
+
+                    imageUrl = await SaveImageAsync(ImageFile);
+                    if (imageUrl == null)
+                    {
+                        TempData["Error"] = "Erro ao guardar a imagem.";
+                        await LoadCategories();
+                        return Page();
+                    }
+                }
+
+                // ⭐ ENVIAR PARA API
                 var cookie = Request.Headers["Cookie"].ToString();
                 var client = _httpClientFactory.CreateClient();
                 var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
@@ -61,7 +100,7 @@ namespace CollectionHub.Pages.Shop
                     CreateItem.Description,
                     CreateItem.Price,
                     CreateItem.CategoryId,
-                    CreateItem.ImageUrl
+                    ImageUrl = imageUrl
                 };
 
                 var json = JsonSerializer.Serialize(itemData);
@@ -84,7 +123,7 @@ namespace CollectionHub.Pages.Shop
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Erro: {ex.Message}");
+                _logger.LogError($"EXCEÇÃO: {ex.Message}");
                 TempData["Error"] = $"Erro: {ex.Message}";
                 await LoadCategories();
                 return Page();
@@ -144,6 +183,42 @@ namespace CollectionHub.Pages.Shop
             }).ToList();
 
             return Task.CompletedTask;
+        }
+
+        // ⭐ MÉTODO DE UPLOAD - VERSÃO DEFINITIVA
+        private async Task<string?> SaveImageAsync(IFormFile imageFile)
+        {
+            try
+            {
+                // Criar pasta se não existir
+                var webRootPath = _webHostEnvironment.WebRootPath;
+                if (string.IsNullOrEmpty(webRootPath))
+                {
+                    webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                }
+
+                var uploadsFolder = Path.Combine(webRootPath, "images", "items");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                // Gerar nome único
+                var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.Now:yyyyMMddHHmmss}_{Path.GetFileName(imageFile.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+
+                return $"/images/items/{uniqueFileName}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Erro SaveImageAsync: {ex.Message}");
+                return null;
+            }
         }
     }
 }
