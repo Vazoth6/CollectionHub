@@ -11,17 +11,15 @@ namespace CollectionHub.Data
         public DbSet<Item> Items { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<UserItem> UserItems { get; set; }
+        public DbSet<ItemLike> ItemLikes { get; set; }
 
-        // Configuração adicional (necessária devido à ambiguidade Sales/Purchases)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Chave composta para UserItem
             modelBuilder.Entity<UserItem>()
                 .HasKey(ui => new { ui.UserId, ui.ItemId });
 
-            // Relações UserItem
             modelBuilder.Entity<UserItem>()
                 .HasOne(ui => ui.User)
                 .WithMany(u => u.UserItems)
@@ -32,7 +30,6 @@ namespace CollectionHub.Data
                 .WithMany(i => i.UserItems)
                 .HasForeignKey(ui => ui.ItemId);
 
-            // Relações ambíguas: MyUser (Sales/Purchases) <-> Transaction (Seller/Buyer)
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.Seller)
                 .WithMany(u => u.Sales)
@@ -45,7 +42,6 @@ namespace CollectionHub.Data
                 .HasForeignKey(t => t.BuyerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Relação Transaction -> Item
             modelBuilder.Entity<Transaction>()
                 .HasOne(t => t.Item)
                 .WithMany(i => i.Transactions)
@@ -54,13 +50,27 @@ namespace CollectionHub.Data
 
             modelBuilder.Entity<MyUser>()
                 .HasIndex(u => u.UserID)
-                .IsUnique(); // Impede que dois MyUsers liguem ao mesmo IdentityUser
+                .IsUnique();
 
-            // ⚠️ IMPORTANTE: Configurar que MyUser.UserID não é auto-gerado
             modelBuilder.Entity<MyUser>()
                 .Property(u => u.UserID)
-                .HasMaxLength(450);  // Mesmo tamanho do IdentityUser.Id
+                .HasMaxLength(450);
+
+            modelBuilder.Entity<ItemLike>()
+                .HasIndex(l => new { l.UserId, l.ItemId })
+                .IsUnique();
+
+            modelBuilder.Entity<ItemLike>()
+                .HasOne(l => l.User)
+                .WithMany(u => u.Likes)
+                .HasForeignKey(l => l.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ItemLike>()
+                .HasOne(l => l.Item)
+                .WithMany(i => i.Likes)
+                .HasForeignKey(l => l.ItemId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
-
 }

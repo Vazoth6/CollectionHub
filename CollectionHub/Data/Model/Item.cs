@@ -38,5 +38,7 @@ namespace CollectionHub.Data.Model
         public ICollection<UserItem> UserItems { get; set; } = new List<UserItem>();
 
         public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+        public ICollection<ItemLike> Likes { get; set; } = new List<ItemLike>();
     }
 }

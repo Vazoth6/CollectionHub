@@ -1,9 +1,11 @@
+using CollectionHub.Data;
+using CollectionHub.Data.Model;
 using CollectionHub.Data.Model.DTOs;
 using CollectionHub.Models;
 using CollectionHub.Services;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace CollectionHub.Pages.Shop
@@ -13,19 +15,24 @@ namespace CollectionHub.Pages.Shop
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ICartService _cartService;
+        private readonly ApplicationDbContext _context;
 
         public DetailsModel(
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            ICartService cartService)
+            ICartService cartService,
+            ApplicationDbContext context)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _cartService = cartService;
+            _context = context;
         }
 
         public ItemResponseDto? Item { get; set; }
         public DateTime? SubmittedAt { get; set; }
+        public int LikeCount { get; set; }
+        public bool IsLikedByCurrentUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
@@ -37,6 +44,14 @@ namespace CollectionHub.Pages.Shop
             }
 
             Item = item;
+            await LoadLikeInfoAsync(id);
+
+            var dbItem = await _context.Items
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            SubmittedAt = dbItem?.SubmittedAt;
+
             return Page();
         }
 
@@ -71,6 +86,48 @@ namespace CollectionHub.Pages.Shop
             return RedirectToPage(new { id = itemId });
         }
 
+        public async Task<IActionResult> OnPostToggleLikeAsync(int itemId)
+        {
+            var currentUser = await GetCurrentMyUserAsync();
+
+            if (currentUser == null)
+            {
+                TempData["Error"] = "Tens de iniciar sessão para gostar de artigos.";
+                return RedirectToPage(new { id = itemId });
+            }
+
+            var itemExists = await _context.Items.AnyAsync(i => i.Id == itemId);
+
+            if (!itemExists)
+            {
+                TempData["Error"] = "O item não foi encontrado.";
+                return RedirectToPage("/Shop/Index");
+            }
+
+            var existingLike = await _context.ItemLikes
+                .FirstOrDefaultAsync(l => l.ItemId == itemId && l.UserId == currentUser.Id);
+
+            if (existingLike == null)
+            {
+                _context.ItemLikes.Add(new ItemLike
+                {
+                    ItemId = itemId,
+                    UserId = currentUser.Id
+                });
+
+                TempData["Success"] = "Gosto adicionado.";
+            }
+            else
+            {
+                _context.ItemLikes.Remove(existingLike);
+                TempData["Success"] = "Gosto removido.";
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToPage(new { id = itemId });
+        }
+
         private async Task<ItemResponseDto?> GetItemAsync(int id)
         {
             try
@@ -97,6 +154,43 @@ namespace CollectionHub.Pages.Shop
                 Console.WriteLine($"Erro ao carregar item: {ex.Message}");
                 return null;
             }
+        }
+
+        private async Task LoadLikeInfoAsync(int itemId)
+        {
+            LikeCount = await _context.ItemLikes.CountAsync(l => l.ItemId == itemId);
+
+            var currentUser = await GetCurrentMyUserAsync();
+
+            if (currentUser == null)
+            {
+                IsLikedByCurrentUser = false;
+                return;
+            }
+
+            IsLikedByCurrentUser = await _context.ItemLikes
+                .AnyAsync(l => l.ItemId == itemId && l.UserId == currentUser.Id);
+        }
+
+        private async Task<MyUser?> GetCurrentMyUserAsync()
+        {
+            var userEmail = User.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return null;
+            }
+
+            var identityUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == userEmail);
+
+            if (identityUser == null)
+            {
+                return null;
+            }
+
+            return await _context.MyUsers
+                .FirstOrDefaultAsync(m => m.UserID == identityUser.Id);
         }
     }
 }
