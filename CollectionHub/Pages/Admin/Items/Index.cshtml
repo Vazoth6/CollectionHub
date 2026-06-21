@@ -1,0 +1,179 @@
+﻿@page "/Admin/Items"
+@model CollectionHub.Pages.Admin.Items.IndexModel
+@{
+    ViewData["Title"] = "Gestão de Itens";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-5 mb-2">
+                        <i class="bi bi-box-seam text-success"></i> Gestão de Itens
+                    </h1>
+                    <p class="text-muted">Gerir todos os itens da plataforma</p>
+                </div>
+                <div>
+                    <a href="/Admin" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+            <hr />
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <!-- Filtros -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="searchTerm"
+                           placeholder="Pesquisar por nome..." value="@Model.SearchTerm" />
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="categoryId">
+                        <option value="">Todas as Categorias</option>
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <option value="@cat.Id" selected="@(Model.CategoryId == cat.Id)">
+                                @cat.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a href="/Admin/Items" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-repeat"></i> Limpar Filtros
+                    </a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover" id="itemsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Imagem</th>
+                            <th>Nome</th>
+                            <th>Preço</th>
+                            <th>Categoria</th>
+                            <th>Status</th>
+                            <th>Vendedor</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" alt="@item.Name" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px; border-radius: 4px;">
+                                            <i class="bi bi-box text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td><strong>@item.Name</strong></td>
+                                <td>@item.Price.ToString("C")</td>
+                                <td>@item.CategoryName</td>
+                                <td>
+                                    <span class="badge @(item.Status == "Disponível" ? "bg-success" : "bg-secondary")">
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td>@item.SellerName</td>
+                                <td>@item.SubmittedAt.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="/Shop/Details/@item.Id" class="btn btn-outline-info" target="_blank">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" onclick="deleteItem(@item.Id, '@item.Name')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetPageUrl(int page)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrEmpty(Model.SearchTerm)) query.Add($"searchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
+        if (Model.CategoryId.HasValue) query.Add($"categoryId={Model.CategoryId}");
+        query.Add($"page={page}");
+        return $"/Admin/Items?{string.Join("&", query)}";
+    }
+}
+
+@section Scripts {
+    <script>
+        async function deleteItem(id, name) {
+            if (!confirm(`Tem a certeza que deseja eliminar o item "${name}"? Esta ação não pode ser desfeita.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/ItemsApi/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao eliminar item.');
+                }
+            } catch (error) {
+                alert('Erro ao eliminar item.');
+            }
+        }
+    </script>
+}

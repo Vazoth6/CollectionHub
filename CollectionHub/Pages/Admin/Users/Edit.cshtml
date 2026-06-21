@@ -1,0 +1,118 @@
+﻿@page "/Admin/Users/Edit/{id:int}"
+@model CollectionHub.Pages.Admin.Users.EditModel
+@{
+    ViewData["Title"] = $"Editar Utilizador - {Model.User?.Name}";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil"></i> Editar Utilizador
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <input type="hidden" asp-for="User.Id" />
+
+                        <div class="mb-3">
+                            <label asp-for="User.Name" class="form-label fw-bold"></label>
+                            <input asp-for="User.Name" class="form-control" />
+                            <span asp-validation-for="User.Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="User.Email" class="form-label fw-bold">Email</label>
+                            <input asp-for="User.Email" class="form-control" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="User.CellPhone" class="form-label fw-bold"></label>
+                            <input asp-for="User.CellPhone" class="form-control" />
+                            <span asp-validation-for="User.CellPhone" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="User.Role" class="form-label fw-bold"></label>
+                            <select asp-for="User.Role" class="form-select" asp-items="Model.RolesSelectList">
+                            </select>
+                            <span asp-validation-for="User.Role" class="text-danger"></span>
+                            <small class="text-muted">Altere o cargo do utilizador para modificar as suas permissões.</small>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/Admin/Users" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Guardar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3 border-danger">
+                <div class="card-body">
+                    <h6 class="text-danger">
+                        <i class="bi bi-exclamation-triangle"></i> Zona de Perigo
+                    </h6>
+                    <p class="small text-muted">Elimine permanentemente este utilizador e todos os seus dados.</p>
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(@Model.User?.Id, '@Model.User?.Name')">
+                        <i class="bi bi-trash"></i> Eliminar Utilizador
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        async function deleteUser(id, name) {
+            if (!confirm(`Tem a certeza que deseja eliminar permanentemente o utilizador "${name}"? Esta ação não pode ser desfeita.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/UsersApi/Profile/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.href = '/Admin/Users';
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao eliminar utilizador.');
+                }
+            } catch (error) {
+                alert('Erro ao eliminar utilizador.');
+            }
+        }
+    </script>
+}

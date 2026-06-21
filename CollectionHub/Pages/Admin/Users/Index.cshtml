@@ -1,0 +1,132 @@
+﻿@page "/Admin/Users"
+@model CollectionHub.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = "Gestão de Utilizadores";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-5 mb-2">
+                        <i class="bi bi-people text-primary"></i> Gestão de Utilizadores
+                    </h1>
+                    <p class="text-muted">Gerir todos os utilizadores da plataforma</p>
+                </div>
+                <div>
+                    <a href="/Admin" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+            <hr />
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="usersTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Telemóvel</th>
+                            <th>Cargo</th>
+                            <th>Registo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.Users)
+                        {
+                            <tr>
+                                <td>@user.Id</td>
+                                <td>
+                                    <strong>@user.Name</strong>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@(user.CellPhone ?? "N/A")</td>
+                                <td>
+                                    <span class="badge @GetRoleBadgeClass(user.Role)">
+                                        @user.Role
+                                    </span>
+                                </td>
+                                <td>@user.RegisterDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="/Admin/Users/Edit/@user.Id" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger" onclick="deleteUser(@user.Id, '@user.Name')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetRoleBadgeClass(string role)
+    {
+        return role switch
+        {
+            "Admin" => "bg-danger",
+            "Vendedor" => "bg-success",
+            "Utilizador" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        async function deleteUser(id, name) {
+            if (!confirm(`Tem a certeza que deseja eliminar o utilizador "${name}"? Esta ação não pode ser desfeita.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/UsersApi/Profile/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(error.message || 'Erro ao eliminar utilizador.');
+                }
+            } catch (error) {
+                alert('Erro ao eliminar utilizador.');
+            }
+        }
+    </script>
+}
