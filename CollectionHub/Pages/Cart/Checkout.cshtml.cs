@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using CollectionHub.Models;
 using CollectionHub.Services;
-using CollectionHub.Data.Model.DTOs;
 using CollectionHub.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,17 +17,20 @@ namespace CollectionHub.Pages.Cart
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<CheckoutModel> _logger;
 
         public CheckoutModel(
             ICartService cartService,
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            ILogger<CheckoutModel> logger)
         {
             _cartService = cartService;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _context = context;
+            _logger = logger;
         }
 
         public ShoppingCart Cart { get; set; } = new();
@@ -44,6 +46,8 @@ namespace CollectionHub.Pages.Cart
 
         public async Task<IActionResult> OnGetAsync(int step = 1)
         {
+            _logger.LogInformation($"=== ONGET STEP {step} ===");
+
             Cart = _cartService.GetCart();
 
             if (!Cart.Items.Any())
@@ -51,10 +55,18 @@ namespace CollectionHub.Pages.Cart
                 return RedirectToPage("/Cart/Index");
             }
 
-            // Obter saldo da carteira
             var userId = await GetCurrentMyUserId();
             var user = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == userId);
             WalletBalance = user?.WalletBalance ?? 0;
+
+            // ⭐ RECUPERAR ENDEREÇO DO TempData COM KEEP
+            if (TempData.ContainsKey("ShippingAddress"))
+            {
+                ShippingAddress = TempData["ShippingAddress"] as string ?? string.Empty;
+                // ⭐ MANTER O TempData PARA O PRÓXIMO REDIRECIONAMENTO
+                TempData.Keep("ShippingAddress");
+                _logger.LogInformation($"ShippingAddress recuperado do TempData: {ShippingAddress}");
+            }
 
             CurrentStep = step;
             return Page();
@@ -62,6 +74,8 @@ namespace CollectionHub.Pages.Cart
 
         public IActionResult OnPostNext(string shippingAddress)
         {
+            _logger.LogInformation($"=== ONPOSTNEXT - Endereço: '{shippingAddress}' ===");
+
             if (string.IsNullOrWhiteSpace(shippingAddress))
             {
                 ModelState.AddModelError(nameof(ShippingAddress), "O endereço de entrega é obrigatório.");
@@ -70,12 +84,20 @@ namespace CollectionHub.Pages.Cart
                 return Page();
             }
 
-            ShippingAddress = shippingAddress;
+            // ⭐ GUARDAR NO TempData COM KEEP
+            TempData["ShippingAddress"] = shippingAddress;
+            // ⭐ FORÇAR A MANTER O TempData
+            TempData.Keep("ShippingAddress");
+            _logger.LogInformation($"ShippingAddress guardado no TempData: {shippingAddress}");
+
             return RedirectToPage(new { step = 2 });
         }
 
         public async Task<IActionResult> OnPostPaymentAsync(string paymentMethod)
         {
+            _logger.LogInformation("=== ONPOSTPAYMENT ===");
+            _logger.LogInformation($"PaymentMethod: {paymentMethod}");
+
             Cart = _cartService.GetCart();
 
             if (!Cart.Items.Any())
@@ -85,14 +107,17 @@ namespace CollectionHub.Pages.Cart
             }
 
             PaymentMethod = paymentMethod;
+
             ShippingAddress = TempData["ShippingAddress"] as string ?? string.Empty;
+            _logger.LogInformation($"ShippingAddress recuperado: '{ShippingAddress}'");
 
             if (string.IsNullOrWhiteSpace(ShippingAddress))
             {
+                _logger.LogWarning("Endereço vazio! Redirecionando para o passo 1.");
+                TempData["Error"] = "Endereço de entrega não fornecido. Por favor, preencha novamente.";
                 return RedirectToPage(new { step = 1 });
             }
 
-            // Obter utilizador atual
             var userId = await GetCurrentMyUserId();
             var buyer = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -102,15 +127,32 @@ namespace CollectionHub.Pages.Cart
                 return RedirectToPage("/Cart/Index");
             }
 
-            // Verificar saldo
             var totalAmount = Cart.Total;
+            _logger.LogInformation($"Total: {totalAmount}, Saldo do comprador: {buyer.WalletBalance}");
+
             if (buyer.WalletBalance < totalAmount)
             {
                 TempData["Error"] = $"Saldo insuficiente. Tem {buyer.WalletBalance:C} e precisa de {totalAmount:C}.";
+                TempData["ShippingAddress"] = ShippingAddress;
+                TempData.Keep("ShippingAddress");
                 return RedirectToPage(new { step = 2 });
             }
 
-            // ⭐ PROCESSAR COMPRA
+            // ⭐ OBTER O COOKIE DE AUTENTICAÇÃO DA REQUISIÇÃO ATUAL
+            var cookie = Request.Headers["Cookie"].ToString();
+            _logger.LogInformation($"Cookie presente: {!string.IsNullOrEmpty(cookie)}");
+
+            var client = _httpClientFactory.CreateClient();
+            var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
+            client.BaseAddress = new Uri(apiBaseUrl);
+
+            // ⭐ ADICIONAR O COOKIE AO HTTPCLIENT
+            if (!string.IsNullOrEmpty(cookie))
+            {
+                client.DefaultRequestHeaders.Add("Cookie", cookie);
+                _logger.LogInformation("Cookie adicionado ao HttpClient");
+            }
+
             bool allSuccessful = true;
             var errors = new List<string>();
 
@@ -118,10 +160,7 @@ namespace CollectionHub.Pages.Cart
             {
                 try
                 {
-                    // Usar a API para comprar
-                    var client = _httpClientFactory.CreateClient();
-                    var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
-                    client.BaseAddress = new Uri(apiBaseUrl);
+                    _logger.LogInformation($"A comprar item: {cartItem.Id} - {cartItem.Name}");
 
                     var requestData = new
                     {
@@ -132,16 +171,20 @@ namespace CollectionHub.Pages.Cart
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                     var response = await client.PostAsync($"api/ItemsApi/Buy/{cartItem.Id}", content);
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    _logger.LogInformation($"Status: {response.StatusCode}");
+                    _logger.LogInformation($"Resposta: {responseContent}");
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        var errorContent = await response.Content.ReadAsStringAsync();
-                        errors.Add($"Erro ao comprar '{cartItem.Name}': {errorContent}");
+                        errors.Add($"Erro ao comprar '{cartItem.Name}': {responseContent}");
                         allSuccessful = false;
                     }
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError($"Erro: {ex.Message}");
                     errors.Add($"Erro ao comprar '{cartItem.Name}': {ex.Message}");
                     allSuccessful = false;
                 }
@@ -150,12 +193,15 @@ namespace CollectionHub.Pages.Cart
             if (allSuccessful)
             {
                 _cartService.ClearCart();
+                TempData.Remove("ShippingAddress");
                 TempData["Success"] = "Compra realizada com sucesso! Os itens foram adicionados ao seu inventário.";
                 return RedirectToPage(new { step = 3 });
             }
             else
             {
                 TempData["Error"] = string.Join(" | ", errors);
+                TempData["ShippingAddress"] = ShippingAddress;
+                TempData.Keep("ShippingAddress");
                 return RedirectToPage(new { step = 2 });
             }
         }

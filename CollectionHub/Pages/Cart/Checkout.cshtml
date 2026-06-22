@@ -14,6 +14,22 @@
         </div>
     </div>
 
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     @if (Model.Cart.Items.Any())
     {
         <!-- Stepper / Progresso -->
@@ -39,7 +55,7 @@
         <!-- Passo 1: Revisão do Pedido -->
         @if (Model.CurrentStep == 1)
         {
-            <form method="post" asp-page-handler="Next">
+            <form method="post" asp-page-handler="Next" id="step1Form">
                 <div class="row">
                     <div class="col-lg-8">
                         <div class="card shadow-sm border-0 mb-4">
@@ -143,7 +159,7 @@
         <!-- Passo 2: Pagamento -->
         @if (Model.CurrentStep == 2)
         {
-            <form method="post" asp-page-handler="Payment">
+            <form method="post" asp-page-handler="Payment" id="paymentForm">
                 <div class="row">
                     <div class="col-lg-8">
                         <div class="card shadow-sm border-0">
@@ -164,30 +180,92 @@
                                     <small class="text-muted">Este valor será deduzido da sua carteira virtual.</small>
                                 </div>
 
-                                <!-- ⭐ SALDO APÓS COMPRA (opcional) -->
+                                <!-- ⭐ SALDO APÓS COMPRA -->
                                 <div class="alert alert-secondary mb-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span>Após a compra ficará com:</span>
-                                        <span class="fw-bold">@((Model.WalletBalance - Model.Cart.Total).ToString("C"))</span>
+                                        <span class="fw-bold @((Model.WalletBalance - Model.Cart.Total) >= 0 ? "text-success" : "text-danger")">
+                                            @((Model.WalletBalance - Model.Cart.Total).ToString("C"))
+                                        </span>
                                     </div>
                                 </div>
 
+                                <!-- ⭐ ENDEREÇO DE ENTREGA (READONLY + HIDDEN) -->
+                                <div class="alert alert-light border mb-4">
+                                    <strong><i class="bi bi-geo-alt"></i> Endereço de Entrega:</strong>
+                                    <p class="mb-0 mt-1">@Model.ShippingAddress</p>
+                                    <!-- ⭐ CAMPO HIDDEN PARA MANTER O ENDEREÇO -->
+                                    <input type="hidden" asp-for="ShippingAddress" />
+                                </div>
+
                                 <div class="payment-methods">
+                                    <!-- ⭐ CARTEIRA VIRTUAL (ATIVO) -->
                                     <div class="payment-option selected">
                                         <input type="radio" name="PaymentMethod" id="carteira" value="Carteira Virtual" checked>
                                         <label for="carteira">
-                                            <div class="payment-icon">
-                                                <i class="bi bi-wallet2"></i>
+                                            <div class="payment-icon" style="background: #d4edda;">
+                                                <i class="bi bi-wallet2 text-success"></i>
                                             </div>
                                             <div class="payment-info">
                                                 <strong>Carteira Virtual</strong>
                                                 <small>Pague com o saldo da sua carteira</small>
                                             </div>
+                                            <span class="badge bg-success">Disponível</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- ⭐ MBWAY (DESABILITADO) -->
+                                    <div class="payment-option disabled">
+                                        <input type="radio" name="PaymentMethod" id="mbway" value="MBWay" disabled>
+                                        <label for="mbway" style="opacity: 0.6; cursor: not-allowed;">
+                                            <div class="payment-icon" style="background: #f8f9fa;">
+                                                <i class="bi bi-phone text-muted"></i>
+                                            </div>
+                                            <div class="payment-info">
+                                                <strong>MBWay</strong>
+                                                <small>Pague através do seu telemóvel</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Em breve</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- ⭐ MULTIBANCO (DESABILITADO) -->
+                                    <div class="payment-option disabled">
+                                        <input type="radio" name="PaymentMethod" id="multibanco" value="Multibanco" disabled>
+                                        <label for="multibanco" style="opacity: 0.6; cursor: not-allowed;">
+                                            <div class="payment-icon" style="background: #f8f9fa;">
+                                                <i class="bi bi-receipt text-muted"></i>
+                                            </div>
+                                            <div class="payment-info">
+                                                <strong>Referência Multibanco</strong>
+                                                <small>Gere uma referência para pagamento</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Em breve</span>
+                                        </label>
+                                    </div>
+
+                                    <!-- ⭐ CARTÃO DE CRÉDITO (DESABILITADO) -->
+                                    <div class="payment-option disabled">
+                                        <input type="radio" name="PaymentMethod" id="cartao" value="Cartao" disabled>
+                                        <label for="cartao" style="opacity: 0.6; cursor: not-allowed;">
+                                            <div class="payment-icon" style="background: #f8f9fa;">
+                                                <i class="bi bi-credit-card text-muted"></i>
+                                            </div>
+                                            <div class="payment-info">
+                                                <strong>Cartão de Crédito</strong>
+                                                <small>Visa, Mastercard, American Express</small>
+                                            </div>
+                                            <span class="badge bg-secondary">Em breve</span>
                                         </label>
                                     </div>
                                 </div>
 
                                 <input type="hidden" name="paymentMethod" value="Carteira Virtual" />
+
+                                <div class="mt-3 text-muted small">
+                                    <i class="bi bi-info-circle"></i>
+                                    Outros métodos de pagamento estarão disponíveis em breve.
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -205,10 +283,17 @@
                                     <button type="button" onclick="goBack()" class="btn btn-outline-secondary w-50">
                                         <i class="bi bi-arrow-left"></i> Voltar
                                     </button>
-                                    <button type="submit" class="btn btn-success w-50">
+                                    <button type="submit" class="btn btn-success w-50"
+                                        @(Model.WalletBalance < Model.Cart.Total ? "disabled" : "")>
                                         Finalizar Compra <i class="bi bi-check-circle"></i>
                                     </button>
                                 </div>
+                                @if (Model.WalletBalance < Model.Cart.Total)
+                                {
+                                    <small class="text-danger d-block mt-2">
+                                        <i class="bi bi-exclamation-triangle"></i> Saldo insuficiente
+                                    </small>
+                                }
                             </div>
                         </div>
                     </div>
@@ -258,8 +343,8 @@
                             <a href="/Shop" class="btn btn-primary flex-grow-1">
                                 <i class="bi bi-shop"></i> Continuar Comprando
                             </a>
-                            <a href="/Transactions/Index" class="btn btn-outline-secondary flex-grow-1">
-                                <i class="bi bi-receipt"></i> Ver Pedidos
+                            <a href="/Inventory" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-box-seam"></i> Ver Inventário
                             </a>
                         </div>
                     </div>
@@ -280,7 +365,6 @@
 
 @section Styles {
     <style>
-        /* Stepper Styles */
         .stepper-wrapper {
             display: flex;
             justify-content: space-between;
@@ -347,7 +431,6 @@
             color: #28a745;
         }
 
-        /* Checkout Item Image */
         .checkout-item-image {
             width: 60px;
             height: 60px;
@@ -370,7 +453,6 @@
                 color: #adb5bd;
             }
 
-        /* Payment Methods */
         .payment-option {
             border: 2px solid #e9ecef;
             border-radius: 12px;
@@ -383,6 +465,15 @@
                 background: #f0fff4;
             }
 
+            .payment-option.disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+                .payment-option.disabled label {
+                    cursor: not-allowed;
+                }
+
             .payment-option input[type="radio"] {
                 display: none;
             }
@@ -394,6 +485,10 @@
                 padding: 15px;
                 cursor: pointer;
                 margin: 0;
+            }
+
+            .payment-option.disabled label {
+                cursor: not-allowed;
             }
 
         .payment-icon {
@@ -418,7 +513,11 @@
                 color: #6c757d;
             }
 
-        /* Confirmation */
+        .payment-option .badge {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+        }
+
         .confirmation-icon i {
             font-size: 5rem;
         }
@@ -429,7 +528,6 @@
             border-radius: 12px;
         }
 
-        /* Sticky */
         .sticky-top {
             position: sticky;
             top: 20px;
@@ -439,36 +537,37 @@
 
 @section Scripts {
     <script>
-        // Mostrar/esconder campos do cartão baseado no método selecionado
-        document.querySelectorAll('input[name="PaymentMethod"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const cardDetails = document.getElementById('cardDetails');
-                if (this.value === 'Cartao') {
-                    cardDetails.style.display = 'block';
-                } else {
-                    cardDetails.style.display = 'none';
-                }
-            });
-        });
-
         function goBack() {
             window.location.href = '/Cart/Checkout?step=1';
         }
 
-        // Marcar opção selecionada visualmente
-        document.querySelectorAll('.payment-option').forEach(option => {
+        // ⭐ CLICK NAS OPÇÕES DE PAGAMENTO
+        document.querySelectorAll('.payment-option:not(.disabled)').forEach(option => {
             option.addEventListener('click', function() {
                 const radio = this.querySelector('input[type="radio"]');
                 if (radio) {
                     radio.checked = true;
                     document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
-
-                    // Trigger change event
-                    const event = new Event('change');
-                    radio.dispatchEvent(event);
                 }
             });
+        });
+
+        // ⭐ VALIDAÇÃO ANTES DE SUBMETER
+        document.getElementById('paymentForm')?.addEventListener('submit', function(e) {
+            console.log('Submetendo formulário de pagamento...');
+            // O formulário vai ser submetido normalmente
+        });
+
+        document.getElementById('step1Form')?.addEventListener('submit', function(e) {
+            const address = document.querySelector('textarea[name="ShippingAddress"]');
+            if (address && !address.value.trim()) {
+                e.preventDefault();
+                alert('Por favor, preencha o endereço de entrega.');
+                address.focus();
+                return false;
+            }
+            return true;
         });
     </script>
 }

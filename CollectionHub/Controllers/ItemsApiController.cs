@@ -236,9 +236,13 @@ namespace CollectionHub.Controllers
         [HttpPost("Buy/{id}")]
         public async Task<IActionResult> BuyItem(int id, [FromBody] BuyItemRequest request)
         {
+            Console.WriteLine($"=== BUY ITEM {id} ===");
+            Console.WriteLine($"ShippingAddress: {request.ShippingAddress}");
+
             var buyerId = await GetCurrentMyUserId();
             if (buyerId == 0)
             {
+                Console.WriteLine("Utilizador não autenticado");
                 return Unauthorized(new { message = "Utilizador não autenticado." });
             }
 
@@ -249,22 +253,26 @@ namespace CollectionHub.Controllers
 
             if (item == null)
             {
+                Console.WriteLine("Item não encontrado");
                 return NotFound(new { message = "Item não encontrado." });
             }
 
             if (item.Status != "Disponível")
             {
+                Console.WriteLine($"Item não disponível: {item.Status}");
                 return BadRequest(new { message = "Este item não está disponível." });
             }
 
             var sellerId = item.UserItems.FirstOrDefault()?.UserId;
             if (sellerId == null)
             {
+                Console.WriteLine("Item sem vendedor");
                 return BadRequest(new { message = "Item sem vendedor." });
             }
 
             if (sellerId == buyerId)
             {
+                Console.WriteLine("Não pode comprar o seu próprio item");
                 return BadRequest(new { message = "Não pode comprar o seu próprio item." });
             }
 
@@ -273,18 +281,27 @@ namespace CollectionHub.Controllers
 
             if (buyer == null || seller == null)
             {
+                Console.WriteLine("Utilizador não encontrado");
                 return BadRequest(new { message = "Utilizador não encontrado." });
             }
+
+            Console.WriteLine($"Buyer: {buyer.Name}, Saldo: {buyer.WalletBalance}");
+            Console.WriteLine($"Seller: {seller.Name}, Saldo: {seller.WalletBalance}");
+            Console.WriteLine($"Item Price: {item.Price}");
 
             // Verificar saldo
             if (buyer.WalletBalance < item.Price)
             {
+                Console.WriteLine("Saldo insuficiente");
                 return BadRequest(new { message = "Saldo insuficiente. Recarregue a sua carteira." });
             }
 
             // ⭐ TRANSFERIR DINHEIRO
             buyer.WalletBalance -= item.Price;
             seller.WalletBalance += item.Price;
+
+            Console.WriteLine($"Novo saldo buyer: {buyer.WalletBalance}");
+            Console.WriteLine($"Novo saldo seller: {seller.WalletBalance}");
 
             // Atualizar status do item
             item.Status = "Vendido";
@@ -315,6 +332,7 @@ namespace CollectionHub.Controllers
             }
 
             await _context.SaveChangesAsync();
+            Console.WriteLine("Compra concluída com sucesso!");
 
             return Ok(new
             {
