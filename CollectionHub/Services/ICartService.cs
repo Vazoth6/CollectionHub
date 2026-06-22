@@ -4,7 +4,7 @@ namespace CollectionHub.Services
 {
     public interface ICartService
     {
-        Cart GetCart();
+        ShoppingCart GetCart();
         void AddToCart(CartItem item);
         void RemoveFromCart(int itemId);
         void ClearCart();

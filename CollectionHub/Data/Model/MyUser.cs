@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CollectionHub.Data.Model
 {
@@ -25,6 +26,10 @@ namespace CollectionHub.Data.Model
 
         [StringLength(450)]
         public string UserID { get; set; } = "";
+
+        [Column(TypeName = "decimal(18,2)")]
+        [Display(Name = "Saldo")]
+        public decimal WalletBalance { get; set; } = 5000.00m;
 
         public ICollection<UserItem> UserItems { get; set; } = new List<UserItem>();
 

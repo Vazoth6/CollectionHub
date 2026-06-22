@@ -13,20 +13,20 @@ namespace CollectionHub.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public Cart GetCart()
+        public ShoppingCart GetCart()
         {
             var session = _httpContextAccessor.HttpContext?.Session;
             var cartJson = session?.GetString(CartSessionKey);
 
             if (string.IsNullOrWhiteSpace(cartJson))
             {
-                return new Cart();
+                return new ShoppingCart();
             }
 
-            return JsonSerializer.Deserialize<Cart>(cartJson, new JsonSerializerOptions
+            return JsonSerializer.Deserialize<ShoppingCart>(cartJson, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            }) ?? new Cart();
+            }) ?? new ShoppingCart();
         }
 
         public void AddToCart(CartItem item)
@@ -63,7 +63,7 @@ namespace CollectionHub.Services
             _httpContextAccessor.HttpContext?.Session.Remove(CartSessionKey);
         }
 
-        private void SaveCart(Cart cart)
+        private void SaveCart(ShoppingCart cart)
         {
             _httpContextAccessor.HttpContext?.Session.SetString(
                 CartSessionKey,

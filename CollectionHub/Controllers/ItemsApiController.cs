@@ -229,6 +229,105 @@ namespace CollectionHub.Controllers
             return CreatedAtAction(nameof(GetItem), new { id = item.Id }, response);
         }
 
+        /// <summary>
+        /// POST: api/ItemsApi/Buy/{id}
+        /// Compra um item diretamente
+        /// </summary>
+        [HttpPost("Buy/{id}")]
+        public async Task<IActionResult> BuyItem(int id, [FromBody] BuyItemRequest request)
+        {
+            var buyerId = await GetCurrentMyUserId();
+            if (buyerId == 0)
+            {
+                return Unauthorized(new { message = "Utilizador não autenticado." });
+            }
+
+            var item = await _context.Items
+                .Include(i => i.UserItems)
+                .ThenInclude(ui => ui.User)
+                .FirstOrDefaultAsync(i => i.Id == id);
+
+            if (item == null)
+            {
+                return NotFound(new { message = "Item não encontrado." });
+            }
+
+            if (item.Status != "Disponível")
+            {
+                return BadRequest(new { message = "Este item não está disponível." });
+            }
+
+            var sellerId = item.UserItems.FirstOrDefault()?.UserId;
+            if (sellerId == null)
+            {
+                return BadRequest(new { message = "Item sem vendedor." });
+            }
+
+            if (sellerId == buyerId)
+            {
+                return BadRequest(new { message = "Não pode comprar o seu próprio item." });
+            }
+
+            var buyer = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == buyerId);
+            var seller = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == sellerId);
+
+            if (buyer == null || seller == null)
+            {
+                return BadRequest(new { message = "Utilizador não encontrado." });
+            }
+
+            // Verificar saldo
+            if (buyer.WalletBalance < item.Price)
+            {
+                return BadRequest(new { message = "Saldo insuficiente. Recarregue a sua carteira." });
+            }
+
+            // ⭐ TRANSFERIR DINHEIRO
+            buyer.WalletBalance -= item.Price;
+            seller.WalletBalance += item.Price;
+
+            // Atualizar status do item
+            item.Status = "Vendido";
+
+            // Criar transação
+            var transaction = new Transaction
+            {
+                SellerId = sellerId.Value,
+                BuyerId = buyerId,
+                ItemId = item.Id,
+                Price = item.Price,
+                ShippingAddress = request.ShippingAddress,
+                Date = DateTime.Now,
+                Status = "Pago",
+                PaymentMethod = "Carteira Virtual",
+                IsPaid = true,
+                PaymentDate = DateTime.Now
+            };
+
+            _context.Transactions.Add(transaction);
+
+            // Remover item do vendedor (UserItem)
+            var userItem = await _context.UserItems
+                .FirstOrDefaultAsync(ui => ui.UserId == sellerId && ui.ItemId == item.Id);
+            if (userItem != null)
+            {
+                _context.UserItems.Remove(userItem);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Compra realizada com sucesso! Saldo restante: {buyer.WalletBalance:C}",
+                newBalance = buyer.WalletBalance
+            });
+        }
+
+        public class BuyItemRequest
+        {
+            public string ShippingAddress { get; set; } = string.Empty;
+        }
 
         /// <summary>
         /// PUT: api/ItemsApi/5

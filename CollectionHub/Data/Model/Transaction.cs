@@ -63,6 +63,10 @@ namespace CollectionHub.Data.Model
         [Display(Name = "Endereço de Entrega")]
         public string ShippingAddress { get; set; } = string.Empty;
 
-        public string Status { get; set; } = "Concluída";
+        public string Status { get; set; } = "Pendente";
+
+        public string PaymentMethod { get; set; } = "Carteira Virtual";
+        public bool IsPaid { get; set; } = false;
+        public DateTime? PaymentDate { get; set; }
     }
 }

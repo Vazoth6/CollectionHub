@@ -13,7 +13,7 @@
         public decimal Subtotal => Price * Quantity;
     }
 
-    public class Cart
+    public class ShoppingCart
     {
         public List<CartItem> Items { get; set; } = new();
         public decimal Total => Items.Sum(i => i.Subtotal);

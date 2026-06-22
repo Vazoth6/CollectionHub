@@ -15,7 +15,7 @@ namespace CollectionHub.Pages.Cart
             _cartService = cartService;
         }
 
-        public CollectionHub.Models.Cart Cart { get; set; } = new();
+        public CollectionHub.Models.ShoppingCart Cart { get; set; } = new();
 
         public void OnGet()
         {

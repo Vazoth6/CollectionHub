@@ -152,69 +152,42 @@
                                     <i class="bi bi-credit-card"></i> Método de Pagamento
                                 </h5>
 
+                                <!-- ⭐ SALDO DISPONÍVEL -->
+                                <div class="alert alert-info mb-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-wallet2 fs-4 me-2"></i>
+                                            <strong>Saldo disponível:</strong>
+                                        </div>
+                                        <span class="fs-4 fw-bold text-success">@Model.WalletBalance.ToString("C")</span>
+                                    </div>
+                                    <small class="text-muted">Este valor será deduzido da sua carteira virtual.</small>
+                                </div>
+
+                                <!-- ⭐ SALDO APÓS COMPRA (opcional) -->
+                                <div class="alert alert-secondary mb-4">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Após a compra ficará com:</span>
+                                        <span class="fw-bold">@((Model.WalletBalance - Model.Cart.Total).ToString("C"))</span>
+                                    </div>
+                                </div>
+
                                 <div class="payment-methods">
-                                    <div class="payment-option @(Model.PaymentMethod == "MBWay" ? "selected" : "")">
-                                        <input type="radio" name="PaymentMethod" id="mbway" value="MBWay"
-                                        @(Model.PaymentMethod == "MBWay" ? "checked" : "")>
-                                        <label for="mbway">
+                                    <div class="payment-option selected">
+                                        <input type="radio" name="PaymentMethod" id="carteira" value="Carteira Virtual" checked>
+                                        <label for="carteira">
                                             <div class="payment-icon">
-                                                <i class="bi bi-phone"></i>
+                                                <i class="bi bi-wallet2"></i>
                                             </div>
                                             <div class="payment-info">
-                                                <strong>MBWay</strong>
-                                                <small>Pague através do seu telemóvel</small>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    <div class="payment-option @(Model.PaymentMethod == "Multibanco" ? "selected" : "")">
-                                        <input type="radio" name="PaymentMethod" id="multibanco" value="Multibanco"
-                                        @(Model.PaymentMethod == "Multibanco" ? "checked" : "")>
-                                        <label for="multibanco">
-                                            <div class="payment-icon">
-                                                <i class="bi bi-receipt"></i>
-                                            </div>
-                                            <div class="payment-info">
-                                                <strong>Referência Multibanco</strong>
-                                                <small>Gere uma referência para pagamento</small>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                    <div class="payment-option @(Model.PaymentMethod == "Cartao" ? "selected" : "")">
-                                        <input type="radio" name="PaymentMethod" id="cartao" value="Cartao"
-                                        @(Model.PaymentMethod == "Cartao" ? "checked" : "")>
-                                        <label for="cartao">
-                                            <div class="payment-icon">
-                                                <i class="bi bi-credit-card"></i>
-                                            </div>
-                                            <div class="payment-info">
-                                                <strong>Cartão de Crédito</strong>
-                                                <small>Visa, Mastercard, American Express</small>
+                                                <strong>Carteira Virtual</strong>
+                                                <small>Pague com o saldo da sua carteira</small>
                                             </div>
                                         </label>
                                     </div>
                                 </div>
 
-                                @if (Model.PaymentMethod == "Cartao")
-                                {
-                                    <div class="card-details mt-4" id="cardDetails">
-                                        <div class="row">
-                                            <div class="col-12 mb-3">
-                                                <label class="form-label">Número do Cartão</label>
-                                                <input type="text" class="form-control" placeholder="1234 5678 9012 3456" />
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Validade</label>
-                                                <input type="text" class="form-control" placeholder="MM/AA" />
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">CVC</label>
-                                                <input type="text" class="form-control" placeholder="123" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                                <input type="hidden" name="paymentMethod" value="Carteira Virtual" />
                             </div>
                         </div>
                     </div>

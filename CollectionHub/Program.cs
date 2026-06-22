@@ -4,7 +4,7 @@ using CollectionHub.Services;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +39,9 @@ builder.Services.AddSession(options =>
 
 /* Swagger */
 builder.Services.AddEndpointsApiExplorer();
+
+// Carteira Virtual
+builder.Services.AddScoped<IWalletService, WalletService>();
 
 builder.Services.AddSwaggerGen(options =>
 {
