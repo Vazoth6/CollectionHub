@@ -1,7 +1,7 @@
 ﻿@page "/Admin/Users/Edit/{id:int}"
 @model CollectionHub.Pages.Admin.Users.EditModel
 @{
-    ViewData["Title"] = $"Editar Utilizador - {Model.User?.Name}";
+    ViewData["Title"] = $"Editar Utilizador - {Model.EditUser?.Name}";
 }
 
 <div class="container mt-4">
@@ -32,30 +32,30 @@
 
                     <form method="post">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-                        <input type="hidden" asp-for="User.Id" />
+                        <input type="hidden" asp-for="EditUser.Id" />
 
                         <div class="mb-3">
-                            <label asp-for="User.Name" class="form-label fw-bold"></label>
-                            <input asp-for="User.Name" class="form-control" />
-                            <span asp-validation-for="User.Name" class="text-danger"></span>
+                            <label asp-for="EditUser.Name" class="form-label fw-bold"></label>
+                            <input asp-for="EditUser.Name" class="form-control" />
+                            <span asp-validation-for="EditUser.Name" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="User.Email" class="form-label fw-bold">Email</label>
-                            <input asp-for="User.Email" class="form-control" readonly />
+                            <label asp-for="EditUser.Email" class="form-label fw-bold">Email</label>
+                            <input asp-for="EditUser.Email" class="form-control" readonly />
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="User.CellPhone" class="form-label fw-bold"></label>
-                            <input asp-for="User.CellPhone" class="form-control" />
-                            <span asp-validation-for="User.CellPhone" class="text-danger"></span>
+                            <label asp-for="EditUser.CellPhone" class="form-label fw-bold"></label>
+                            <input asp-for="EditUser.CellPhone" class="form-control" />
+                            <span asp-validation-for="EditUser.CellPhone" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="User.Role" class="form-label fw-bold"></label>
-                            <select asp-for="User.Role" class="form-select" asp-items="Model.RolesSelectList">
+                            <label asp-for="EditUser.Role" class="form-label fw-bold"></label>
+                            <select asp-for="EditUser.Role" class="form-select" asp-items="Model.RolesSelectList">
                             </select>
-                            <span asp-validation-for="User.Role" class="text-danger"></span>
+                            <span asp-validation-for="EditUser.Role" class="text-danger"></span>
                             <small class="text-muted">Altere o cargo do utilizador para modificar as suas permissões.</small>
                         </div>
 
@@ -79,7 +79,7 @@
                         <i class="bi bi-exclamation-triangle"></i> Zona de Perigo
                     </h6>
                     <p class="small text-muted">Elimine permanentemente este utilizador e todos os seus dados.</p>
-                    <button class="btn btn-danger btn-sm" onclick="deleteUser(@Model.User?.Id, '@Model.User?.Name')">
+                    <button class="btn btn-danger btn-sm" onclick="deleteUser(@Model.EditUser?.Id, '@Model.EditUser?.Name')">
                         <i class="bi bi-trash"></i> Eliminar Utilizador
                     </button>
                 </div>

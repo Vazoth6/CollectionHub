@@ -19,10 +19,6 @@ namespace CollectionHub.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// GET: api/ItemsApi
-        /// Obtém todos os itens disponíveis (com filtros opcionais)
-        /// </summary>
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ItemResponseDto>>> GetItems([FromQuery] ItemListQueryDto query)
@@ -34,11 +30,10 @@ namespace CollectionHub.Controllers
                 .Where(i => i.Status == "Disponível")
                 .AsQueryable();
 
-            // Aplicar filtros
             if (!string.IsNullOrEmpty(query.SearchTerm))
             {
                 dbQuery = dbQuery.Where(i => i.Name.Contains(query.SearchTerm) ||
-                                         (i.Description != null && i.Description.Contains(query.SearchTerm)));
+                                             (i.Description != null && i.Description.Contains(query.SearchTerm)));
             }
 
             if (query.CategoryId.HasValue)
@@ -61,7 +56,6 @@ namespace CollectionHub.Controllers
                 dbQuery = dbQuery.Where(i => i.Price <= query.MaxPrice.Value);
             }
 
-            // Aplicar ordenação
             dbQuery = query.SortBy switch
             {
                 "price_asc" => dbQuery.OrderBy(i => i.Price),
@@ -70,14 +64,13 @@ namespace CollectionHub.Controllers
                 _ => dbQuery.OrderBy(i => i.Name)
             };
 
-            // Aplicar paginação
             var totalItems = await dbQuery.CountAsync();
+
             var items = await dbQuery
                 .Skip((query.Page - 1) * query.PageSize)
                 .Take(query.PageSize)
                 .ToListAsync();
 
-            // Mapear para DTOs
             var result = items.Select(i => new ItemResponseDto
             {
                 Id = i.Id,
@@ -98,10 +91,6 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// GET: api/ItemsApi/5
-        /// Obtém um item específico pelo ID
-        /// </summary>
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<ActionResult<ItemResponseDto>> GetItem(int id)
@@ -124,6 +113,7 @@ namespace CollectionHub.Controllers
                 Description = item.Description,
                 Price = item.Price,
                 Status = item.Status,
+                ImageUrl = item.ImageUrl,
                 CategoryId = item.CategoryId,
                 CategoryName = item.Category?.Name ?? "Sem Categoria",
                 SellerName = item.UserItems.FirstOrDefault()?.User?.Name ?? "Vendedor Desconhecido",
@@ -133,14 +123,11 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// GET: api/ItemsApi/User/MyItems
-        /// Obtém todos os itens do utilizador autenticado
-        /// </summary>
         [HttpGet("User/MyItems")]
         public async Task<ActionResult<IEnumerable<MyItemResponseDto>>> GetMyItems()
         {
             var myUserId = await GetCurrentMyUserId();
+
             if (myUserId == 0)
             {
                 return Unauthorized(new { message = "Utilizador não autenticado." });
@@ -149,8 +136,8 @@ namespace CollectionHub.Controllers
             var userItems = await _context.UserItems
                 .Include(ui => ui.Item)
                 .ThenInclude(i => i.Category)
-                .Where(ui => ui.UserId == myUserId)
-                .Select(ui => ui.Item)
+                .Where(ui => ui.UserId == myUserId && ui.Item != null)
+                .Select(ui => ui.Item!)
                 .ToListAsync();
 
             var result = userItems.Select(i => new MyItemResponseDto
@@ -167,10 +154,6 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// POST: api/ItemsApi
-        /// Cria um novo item
-        /// </summary>
         [HttpPost]
         public async Task<ActionResult<ItemResponseDto>> PostItem([FromBody] CreateItemDto createItemDto)
         {
@@ -180,6 +163,7 @@ namespace CollectionHub.Controllers
             }
 
             var myUserId = await GetCurrentMyUserId();
+
             if (myUserId == 0)
             {
                 return Unauthorized(new { message = "Utilizador não autenticado." });
@@ -199,16 +183,15 @@ namespace CollectionHub.Controllers
             _context.Items.Add(item);
             await _context.SaveChangesAsync();
 
-            // Adicionar à coleção do utilizador (UserItem)
             var userItem = new UserItem
             {
                 UserId = myUserId,
                 ItemId = item.Id
             };
+
             _context.UserItems.Add(userItem);
             await _context.SaveChangesAsync();
 
-            // ⭐ RETORNAR APENAS DTO (evita ciclos de serialização)
             var seller = await _context.MyUsers.FirstOrDefaultAsync(m => m.Id == myUserId);
             var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == item.CategoryId);
 
@@ -229,20 +212,13 @@ namespace CollectionHub.Controllers
             return CreatedAtAction(nameof(GetItem), new { id = item.Id }, response);
         }
 
-        /// <summary>
-        /// POST: api/ItemsApi/Buy/{id}
-        /// Compra um item diretamente
-        /// </summary>
         [HttpPost("Buy/{id}")]
         public async Task<IActionResult> BuyItem(int id, [FromBody] BuyItemRequest request)
         {
-            Console.WriteLine($"=== BUY ITEM {id} ===");
-            Console.WriteLine($"ShippingAddress: {request.ShippingAddress}");
-
             var buyerId = await GetCurrentMyUserId();
+
             if (buyerId == 0)
             {
-                Console.WriteLine("Utilizador não autenticado");
                 return Unauthorized(new { message = "Utilizador não autenticado." });
             }
 
@@ -253,60 +229,44 @@ namespace CollectionHub.Controllers
 
             if (item == null)
             {
-                Console.WriteLine("Item não encontrado");
                 return NotFound(new { message = "Item não encontrado." });
             }
 
             if (item.Status != "Disponível")
             {
-                Console.WriteLine($"Item não disponível: {item.Status}");
                 return BadRequest(new { message = "Este item não está disponível." });
             }
 
             var sellerId = item.UserItems.FirstOrDefault()?.UserId;
+
             if (sellerId == null)
             {
-                Console.WriteLine("Item sem vendedor");
                 return BadRequest(new { message = "Item sem vendedor." });
             }
 
             if (sellerId == buyerId)
             {
-                Console.WriteLine("Não pode comprar o seu próprio item");
                 return BadRequest(new { message = "Não pode comprar o seu próprio item." });
             }
 
             var buyer = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == buyerId);
-            var seller = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == sellerId);
+            var seller = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == sellerId.Value);
 
             if (buyer == null || seller == null)
             {
-                Console.WriteLine("Utilizador não encontrado");
                 return BadRequest(new { message = "Utilizador não encontrado." });
             }
 
-            Console.WriteLine($"Buyer: {buyer.Name}, Saldo: {buyer.WalletBalance}");
-            Console.WriteLine($"Seller: {seller.Name}, Saldo: {seller.WalletBalance}");
-            Console.WriteLine($"Item Price: {item.Price}");
-
-            // Verificar saldo
             if (buyer.WalletBalance < item.Price)
             {
-                Console.WriteLine("Saldo insuficiente");
                 return BadRequest(new { message = "Saldo insuficiente. Recarregue a sua carteira." });
             }
 
-            // ⭐ TRANSFERIR DINHEIRO
             buyer.WalletBalance -= item.Price;
             seller.WalletBalance += item.Price;
 
-            Console.WriteLine($"Novo saldo buyer: {buyer.WalletBalance}");
-            Console.WriteLine($"Novo saldo seller: {seller.WalletBalance}");
-
-            // Atualizar status do item
             item.Status = "Vendido";
 
-            // Criar transação
             var transaction = new Transaction
             {
                 SellerId = sellerId.Value,
@@ -323,16 +283,18 @@ namespace CollectionHub.Controllers
 
             _context.Transactions.Add(transaction);
 
-            // Remover item do vendedor (UserItem)
-            var userItem = await _context.UserItems
-                .FirstOrDefaultAsync(ui => ui.UserId == sellerId && ui.ItemId == item.Id);
-            if (userItem != null)
+            try
             {
-                _context.UserItems.Remove(userItem);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
-            Console.WriteLine("Compra concluída com sucesso!");
+            catch (DbUpdateConcurrencyException)
+            {
+                return Conflict(new
+                {
+                    success = false,
+                    message = "Este item já não está disponível. Atualize a página e tente novamente."
+                });
+            }
 
             return Ok(new
             {
@@ -347,10 +309,6 @@ namespace CollectionHub.Controllers
             public string ShippingAddress { get; set; } = string.Empty;
         }
 
-        /// <summary>
-        /// PUT: api/ItemsApi/5
-        /// Atualiza um item existente
-        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> PutItem(int id, [FromBody] UpdateItemDto updateItemDto)
         {
@@ -360,12 +318,12 @@ namespace CollectionHub.Controllers
             }
 
             var item = await _context.Items.FindAsync(id);
+
             if (item == null)
             {
                 return NotFound(new { message = $"Item com ID {id} não encontrado." });
             }
 
-            // Verificar se o utilizador é o dono do item
             if (!await IsItemOwner(id) && !User.IsInRole("Admin"))
             {
                 return Forbid();
@@ -389,39 +347,35 @@ namespace CollectionHub.Controllers
                 {
                     return NotFound(new { message = $"Item com ID {id} não encontrado." });
                 }
+
                 throw;
             }
 
             return Ok(new { message = "Item atualizado com sucesso.", item });
         }
 
-        /// <summary>
-        /// DELETE: api/ItemsApi/5
-        /// Elimina um item
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteItem(int id)
         {
             var item = await _context.Items.FindAsync(id);
+
             if (item == null)
             {
                 return NotFound(new { message = $"Item com ID {id} não encontrado." });
             }
 
-            // Verificar se o utilizador é o dono do item
             if (!await IsItemOwner(id) && !User.IsInRole("Admin"))
             {
                 return Forbid();
             }
 
-            // Verificar se o item tem transações associadas
             var hasTransactions = await _context.Transactions.AnyAsync(t => t.ItemId == id);
+
             if (hasTransactions)
             {
                 return BadRequest(new { message = "Não é possível eliminar um item que tem transações associadas." });
             }
 
-            // Remover da tabela UserItem
             var userItems = _context.UserItems.Where(ui => ui.ItemId == id);
             _context.UserItems.RemoveRange(userItems);
 
@@ -431,10 +385,6 @@ namespace CollectionHub.Controllers
             return Ok(new { message = "Item eliminado com sucesso." });
         }
 
-        /// <summary>
-        /// GET: api/ItemsApi/Categories/{categoryId}
-        /// Obtém todos os itens de uma categoria específica
-        /// </summary>
         [HttpGet("Categories/{categoryId}")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<ItemResponseDto>>> GetItemsByCategory(int categoryId)
@@ -457,7 +407,6 @@ namespace CollectionHub.Controllers
             return Ok(items);
         }
 
-        // Métodos auxiliares privados
         private bool ItemExists(int id)
         {
             return _context.Items.Any(e => e.Id == id);
@@ -466,14 +415,19 @@ namespace CollectionHub.Controllers
         private async Task<int> GetCurrentMyUserId()
         {
             var userEmail = User.Identity?.Name;
+
             if (string.IsNullOrEmpty(userEmail))
+            {
                 return 0;
+            }
 
             var identityUser = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == userEmail);
 
             if (identityUser == null)
+            {
                 return 0;
+            }
 
             var myUser = await _context.MyUsers
                 .FirstOrDefaultAsync(m => m.UserID == identityUser.Id);
@@ -484,6 +438,7 @@ namespace CollectionHub.Controllers
         private async Task<bool> IsItemOwner(int itemId)
         {
             var userId = await GetCurrentMyUserId();
+
             return await _context.UserItems
                 .AnyAsync(ui => ui.UserId == userId && ui.ItemId == itemId);
         }

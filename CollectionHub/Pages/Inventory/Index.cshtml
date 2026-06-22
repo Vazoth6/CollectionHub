@@ -1,21 +1,37 @@
 ﻿@page "/Inventory"
 @model CollectionHub.Pages.Inventory.IndexModel
 @{
-    ViewData["Title"] = "Meu Inventário";
+    ViewData["Title"] = Model.IsBuyerProfile ? "Perfil de Comprador" : "Perfil de Vendedor";
 }
 
 <div class="container mt-4">
     <div class="row">
-        <div class="col-12">
-            <h1 class="display-5 mb-2">
-                <i class="bi bi-box-seam text-success"></i> Meu Inventário
-            </h1>
-            <p class="text-muted">Gerencie os seus itens comprados e à venda</p>
-            <hr />
+        <div class="col-12 d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="display-5 mb-2">
+                    <i class="bi @(Model.IsBuyerProfile ? "bi-bag-check text-success" : "bi-shop text-primary")"></i>
+                    Perfil de @Model.ActiveProfile
+                </h1>
+                <p class="text-muted mb-0">
+                    @(Model.IsBuyerProfile
+                        ? "Neste perfil só consegue ver as suas compras."
+                        : "Neste perfil só consegue ver as suas vendas.")
+                </p>
+            </div>
+
+            <form method="post" asp-page="/Profile/Switch" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                <label class="fw-semibold" for="profile">Trocar perfil:</label>
+                <select id="profile" name="profile" class="form-select" onchange="this.form.submit()">
+                    <option value="Comprador" selected="@Model.IsBuyerProfile">Comprador</option>
+                    <option value="Vendedor" selected="@Model.IsSellerProfile">Vendedor</option>
+                </select>
+            </form>
+
+            <hr class="w-100" />
         </div>
     </div>
 
-    <!-- Saldo da Carteira -->
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card shadow-sm border-0 bg-info bg-opacity-10">
@@ -30,212 +46,198 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 bg-primary bg-opacity-10">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Itens à Venda</h6>
-                            <h2 class="mb-0 text-primary">@Model.ItemsForSale.Count</h2>
+
+        @if (Model.IsBuyerProfile)
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 bg-success bg-opacity-10">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Itens Comprados</h6>
+                                <h2 class="mb-0 text-success">@Model.ItemsPurchased.Count</h2>
+                            </div>
+                            <i class="bi bi-check-circle fs-1 text-success"></i>
                         </div>
-                        <i class="bi bi-tag fs-1 text-primary"></i>
                     </div>
                 </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 bg-primary bg-opacity-10">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">Itens à Venda</h6>
+                                <h2 class="mb-0 text-primary">@Model.ItemsForSale.Count</h2>
+                            </div>
+                            <i class="bi bi-tag fs-1 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="col-md-4">
-            <div class="card shadow-sm border-0 bg-success bg-opacity-10">
+            <div class="card shadow-sm border-0 bg-secondary bg-opacity-10">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-1">Itens Comprados</h6>
-                            <h2 class="mb-0 text-success">@Model.ItemsPurchased.Count</h2>
+                            <h6 class="text-muted mb-1">Transações</h6>
+                            <h2 class="mb-0 text-secondary">@Model.Transactions.Count</h2>
                         </div>
-                        <i class="bi bi-check-circle fs-1 text-success"></i>
+                        <i class="bi bi-receipt fs-1 text-secondary"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tabs -->
-    <ul class="nav nav-tabs mb-4" id="inventoryTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="purchased-tab" data-bs-toggle="tab"
-                    data-bs-target="#purchased" type="button" role="tab">
-                <i class="bi bi-bag-check"></i> Itens Comprados
-                <span class="badge bg-secondary ms-2">@Model.ItemsPurchased.Count</span>
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="forsale-tab" data-bs-toggle="tab"
-                    data-bs-target="#forsale" type="button" role="tab">
-                <i class="bi bi-tag"></i> Itens à Venda
-                <span class="badge bg-secondary ms-2">@Model.ItemsForSale.Count</span>
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="transactions-tab" data-bs-toggle="tab"
-                    data-bs-target="#transactions" type="button" role="tab">
-                <i class="bi bi-receipt"></i> Transações
-                <span class="badge bg-secondary ms-2">@Model.Transactions.Count</span>
-            </button>
-        </li>
-    </ul>
+    @if (Model.IsBuyerProfile)
+    {
+        <h3 class="mb-3"><i class="bi bi-bag-check"></i> As minhas compras</h3>
 
-    <div class="tab-content" id="inventoryTabContent">
-        <!-- Itens Comprados -->
-        <div class="tab-pane fade show active" id="purchased" role="tabpanel">
-            @if (!Model.ItemsPurchased.Any())
-            {
-                <div class="alert alert-info text-center py-5">
-                    <i class="bi bi-inbox fs-1"></i>
-                    <h4 class="mt-2">Nenhum item comprado</h4>
-                    <p>Visite a <a href="/Shop">Loja</a> para comprar itens!</p>
-                </div>
-            }
-            else
-            {
-                <div class="row g-4">
-                    @foreach (var item in Model.ItemsPurchased)
-                    {
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card shadow-sm border-0 h-100">
-                                <div class="item-image">
-                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                                    {
-                                        <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
-                                    }
-                                    else
-                                    {
-                                        <div class="image-placeholder">
-                                            <i class="bi bi-box-seam"></i>
-                                        </div>
-                                    }
-                                    <span class="item-badge badge bg-success">Comprado</span>
+        @if (!Model.ItemsPurchased.Any())
+        {
+            <div class="alert alert-info text-center py-5">
+                <i class="bi bi-inbox fs-1"></i>
+                <h4 class="mt-2">Nenhum item comprado</h4>
+                <p>Visite a <a href="/Shop">Loja</a> para comprar itens.</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4 mb-5">
+                @foreach (var item in Model.ItemsPurchased)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="item-image">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
+                                }
+                                else
+                                {
+                                    <div class="image-placeholder"><i class="bi bi-box-seam"></i></div>
+                                }
+                                <span class="item-badge badge bg-success">Comprado</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Name</h5>
+                                <p class="card-text text-muted">@item.Description</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-primary">@item.Price.ToString("C")</span>
+                                    <small class="text-muted">@item.PurchaseDate?.ToString("dd/MM/yyyy")</small>
                                 </div>
-                                <div class="card-body">
-                                    <h5 class="card-title">@item.Name</h5>
-                                    <p class="card-text text-muted">@item.Description</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold text-primary">@item.Price.ToString("C")</span>
-                                        <small class="text-muted">@item.PurchaseDate?.ToString("dd/MM/yyyy")</small>
+                                @if (!string.IsNullOrEmpty(item.ShippingAddress))
+                                {
+                                    <div class="mt-2 small text-muted">
+                                        <i class="bi bi-geo-alt"></i> @item.ShippingAddress
                                     </div>
-                                    @if (!string.IsNullOrEmpty(item.ShippingAddress))
-                                    {
-                                        <div class="mt-2 small text-muted">
-                                            <i class="bi bi-geo-alt"></i> @item.ShippingAddress
-                                        </div>
-                                    }
-                                </div>
+                                }
                             </div>
                         </div>
-                    }
-                </div>
-            }
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="mb-0"><i class="bi bi-tag"></i> As minhas vendas</h3>
+            <a href="/Shop/Create" class="btn btn-primary">Vender um item</a>
         </div>
 
-        <!-- Itens à Venda -->
-        <div class="tab-pane fade" id="forsale" role="tabpanel">
-            @if (!Model.ItemsForSale.Any())
-            {
-                <div class="alert alert-info text-center py-5">
-                    <i class="bi bi-inbox fs-1"></i>
-                    <h4 class="mt-2">Nenhum item à venda</h4>
-                    <a href="/Shop/Create" class="btn btn-primary">Vender um item</a>
-                </div>
-            }
-            else
-            {
-                <div class="row g-4">
-                    @foreach (var item in Model.ItemsForSale)
-                    {
-                        <div class="col-md-6 col-lg-4">
-                            <div class="card shadow-sm border-0 h-100">
-                                <div class="item-image">
-                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                                    {
-                                        <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
-                                    }
-                                    else
-                                    {
-                                        <div class="image-placeholder">
-                                            <i class="bi bi-box-seam"></i>
-                                        </div>
-                                    }
-                                    <span class="item-badge badge bg-primary">À Venda</span>
+        @if (!Model.ItemsForSale.Any())
+        {
+            <div class="alert alert-info text-center py-5">
+                <i class="bi bi-inbox fs-1"></i>
+                <h4 class="mt-2">Nenhum item à venda</h4>
+                <a href="/Shop/Create" class="btn btn-primary">Vender um item</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4 mb-5">
+                @foreach (var item in Model.ItemsForSale)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="item-image">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid" />
+                                }
+                                else
+                                {
+                                    <div class="image-placeholder"><i class="bi bi-box-seam"></i></div>
+                                }
+                                <span class="item-badge badge bg-primary">À Venda</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Name</h5>
+                                <p class="card-text text-muted">@item.Description</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-primary">@item.Price.ToString("C")</span>
+                                    <span class="badge @(item.Status == "Disponível" ? "bg-success" : "bg-secondary")">@item.Status</span>
                                 </div>
-                                <div class="card-body">
-                                    <h5 class="card-title">@item.Name</h5>
-                                    <p class="card-text text-muted">@item.Description</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold text-primary">@item.Price.ToString("C")</span>
-                                        <span class="badge @(item.Status == "Disponível" ? "bg-success" : "bg-secondary")">
-                                            @item.Status
-                                        </span>
-                                    </div>
-                                    <small class="text-muted d-block mt-2">
-                                        <i class="bi bi-clock"></i> Submetido em @item.SubmittedAt.ToString("dd/MM/yyyy")
-                                    </small>
-                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="bi bi-clock"></i> Submetido em @item.SubmittedAt.ToString("dd/MM/yyyy")
+                                </small>
                             </div>
                         </div>
-                    }
-                </div>
-            }
-        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
 
-        <!-- Transações -->
-        <div class="tab-pane fade" id="transactions" role="tabpanel">
-            @if (!Model.Transactions.Any())
-            {
-                <div class="alert alert-info text-center py-5">
-                    <i class="bi bi-inbox fs-1"></i>
-                    <h4 class="mt-2">Nenhuma transação</h4>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Data</th>
-                                <th>Item</th>
-                                <th>Comprador/Vendedor</th>
-                                <th>Preço</th>
-                                <th>Tipo</th>
-                                <th>Status</th>
-                                <th>Endereço</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var t in Model.Transactions)
-                            {
-                                <tr>
-                                    <td>@t.Date.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@t.ItemName</td>
-                                    <td>@t.OtherPartyName</td>
-                                    <td class="fw-bold">@t.Price.ToString("C")</td>
-                                    <td>
-                                        <span class="badge @(t.TransactionType == "Compra" ? "bg-success" : "bg-warning")">
-                                            @t.TransactionType
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge @GetStatusBadgeClass(t.Status)">
-                                            @t.Status
-                                        </span>
-                                    </td>
-                                    <td>@t.ShippingAddress</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+    <h3 class="mb-3">
+        <i class="bi bi-receipt"></i>
+        @(Model.IsBuyerProfile ? "Histórico de compras" : "Histórico de vendas")
+    </h3>
+
+    @if (!Model.Transactions.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <h4 class="mt-2">Nenhuma transação</h4>
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data</th>
+                        <th>Item</th>
+                        <th>@(Model.IsBuyerProfile ? "Vendedor" : "Comprador")</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th>Endereço</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model.Transactions)
+                    {
+                        <tr>
+                            <td>@t.Date.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@t.ItemName</td>
+                            <td>@t.OtherPartyName</td>
+                            <td class="fw-bold">@t.Price.ToString("C")</td>
+                            <td><span class="badge @GetStatusBadgeClass(t.Status)">@t.Status</span></td>
+                            <td>@t.ShippingAddress</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
 
 @section Styles {
@@ -251,11 +253,11 @@
             border-radius: 12px 12px 0 0;
         }
 
-            .item-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .image-placeholder {
             display: flex;
@@ -266,9 +268,9 @@
             color: #dee2e6;
         }
 
-            .image-placeholder i {
-                font-size: 4rem;
-            }
+        .image-placeholder i {
+            font-size: 4rem;
+        }
 
         .item-badge {
             position: absolute;
@@ -286,7 +288,7 @@
     {
         return status switch
         {
-            "Pago" or "Concluída" => "bg-success",
+            "Pago" or "Concluída" or "Entregue" => "bg-success",
             "Pendente" => "bg-warning",
             "Enviado" => "bg-info",
             "Cancelado" => "bg-danger",

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CollectionHub.Data;
-using CollectionHub.Data.Model;
 using System.ComponentModel.DataAnnotations;
 
 namespace CollectionHub.Pages.Admin.Users
@@ -23,7 +22,7 @@ namespace CollectionHub.Pages.Admin.Users
         }
 
         [BindProperty]
-        public EditUserDto User { get; set; } = new();
+        public EditUserDto EditUser { get; set; } = new();
 
         public List<SelectListItem> RolesSelectList { get; set; } = new();
 
@@ -41,7 +40,7 @@ namespace CollectionHub.Pages.Admin.Users
                 return NotFound();
             }
 
-            User = new EditUserDto
+            EditUser = new EditUserDto
             {
                 Id = myUser.Id,
                 Name = myUser.Name,
@@ -62,40 +61,42 @@ namespace CollectionHub.Pages.Admin.Users
                 return Page();
             }
 
-            var myUser = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == User.Id);
+            var myUser = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == EditUser.Id);
             if (myUser == null)
             {
                 return NotFound();
             }
 
-            myUser.Name = User.Name;
-            myUser.CellPhone = User.CellPhone;
-            myUser.Role = User.Role;
+            myUser.Name = EditUser.Name;
+            myUser.CellPhone = EditUser.CellPhone;
+            myUser.Role = EditUser.Role;
 
-            // Atualizar o role no Identity também
             var identityUser = await _userManager.FindByIdAsync(myUser.UserID);
             if (identityUser != null)
             {
                 var currentRoles = await _userManager.GetRolesAsync(identityUser);
                 await _userManager.RemoveFromRolesAsync(identityUser, currentRoles);
-                await _userManager.AddToRoleAsync(identityUser, User.Role);
+                await _userManager.AddToRoleAsync(identityUser, EditUser.Role);
             }
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Utilizador '{User.Name}' atualizado com sucesso!";
+            TempData["Success"] = $"Utilizador '{EditUser.Name}' atualizado com sucesso!";
             return RedirectToPage("/Admin/Users/Index");
         }
 
         private async Task LoadRoles()
         {
             var roles = new[] { "Utilizador", "Vendedor", "Admin" };
+
             RolesSelectList = roles.Select(r => new SelectListItem
             {
                 Value = r,
                 Text = r,
-                Selected = r == User.Role
+                Selected = r == EditUser.Role
             }).ToList();
+
+            await Task.CompletedTask;
         }
     }
 
