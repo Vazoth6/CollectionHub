@@ -16,43 +16,48 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-dark main-navbar">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">CollectionHub</a>
+                <a class="navbar-brand brand-logo" asp-area="" asp-page="/Index">
+                    CollectionHub
+                </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Alternar navegação">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav flex-grow-1 gap-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Página Inicial</a>
+                            <a class="nav-link nav-link-custom" asp-area="" asp-page="/Index">
+                                <i class="bi bi-house"></i> Início
+                            </a>
                         </li>
-
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Shop/Index">Loja</a>
+                            <a class="nav-link nav-link-custom" asp-area="" asp-page="/Shop/Index">
+                                <i class="bi bi-shop"></i> Loja
+                            </a>
                         </li>
                         @if (User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Inventory/Index">
-                                    <i class="bi bi-box-seam"></i> Meu Inventário
+                                <a class="nav-link nav-link-custom" asp-area="" asp-page="/Inventory/Index">
+                                    <i class="bi bi-box-seam"></i> Inventário
                                 </a>
                             </li>
                         }
                         @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Index">
+                                <a class="nav-link nav-link-custom" asp-area="" asp-page="/Admin/Index">
                                     <i class="bi bi-shield-lock"></i> Admin
                                 </a>
                             </li>
                         }
                     </ul>
 
-                    <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
                         <partial name="_CartDropdown" />
                         <partial name="_LoginPartial" />
                     </div>

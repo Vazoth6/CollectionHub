@@ -1,0 +1,332 @@
+﻿@page "/Admin/Transactions"
+@model CollectionHub.Pages.Admin.Transactions.IndexModel
+@{
+    ViewData["Title"] = "Gestão de Transações - Admin";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-5 mb-2">
+                        <i class="bi bi-receipt text-warning"></i> Gestão de Transações
+                    </h1>
+                    <p class="text-muted">Visualize todas as transações realizadas na plataforma</p>
+                </div>
+                <div>
+                    <a href="/Admin" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+            <hr />
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtros -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" id="filterForm">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Pesquisar</label>
+                        <input type="text" class="form-control" name="searchTerm"
+                               placeholder="Item, comprador, vendedor..."
+                               value="@Model.SearchTerm" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Status</label>
+                        <select class="form-select" name="status">
+                            <option value="">Todos</option>
+                            <option value="Pendente" selected="@(Model.Status == "Pendente")">Pendente</option>
+                            <option value="Pago" selected="@(Model.Status == "Pago")">Pago</option>
+                            <option value="Enviado" selected="@(Model.Status == "Enviado")">Enviado</option>
+                            <option value="Entregue" selected="@(Model.Status == "Entregue")">Entregue</option>
+                            <option value="Cancelado" selected="@(Model.Status == "Cancelado")">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Data Início</label>
+                        <input type="date" class="form-control" name="dateFrom" value="@Model.DateFrom?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Data Fim</label>
+                        <input type="date" class="form-control" name="dateTo" value="@Model.DateTo?.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                            <a href="/Admin/Transactions" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Transações -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="transactionsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Data</th>
+                            <th>Item</th>
+                            <th>Comprador</th>
+                            <th>Vendedor</th>
+                            <th>Preço</th>
+                            <th>Status</th>
+                            <th>Pagamento</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in Model.Transactions)
+                        {
+                            <tr>
+                                <td>#@transaction.Id</td>
+                                <td>@transaction.Date.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <strong>@transaction.ItemName</strong>
+                                    <br />
+                                    <small class="text-muted">ID: @transaction.ItemId</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-circle text-primary"></i>
+                                        <div>
+                                            <div>@transaction.BuyerName</div>
+                                            <small class="text-muted">@transaction.BuyerEmail</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-person-circle text-success"></i>
+                                        <div>
+                                            <div>@transaction.SellerName</div>
+                                            <small class="text-muted">@transaction.SellerEmail</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-bold text-primary">@transaction.Price.ToString("C")</td>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(transaction.Status)">
+                                        @transaction.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        <div>@transaction.PaymentMethod</div>
+                                        <span class="badge @(transaction.IsPaid ? "bg-success" : "bg-secondary")">
+                                            @(transaction.IsPaid ? "Pago" : "Não pago")
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-info" onclick="showTransactionDetails(@transaction.Id)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    @if (transaction.Status != "Entregue" && transaction.Status != "Cancelado")
+                                    {
+                                        <div class="dropdown d-inline">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="bi bi-gear"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <form method="post" asp-page-handler="UpdateStatus">
+                                                        <input type="hidden" name="transactionId" value="@transaction.Id" />
+                                                        <input type="hidden" name="newStatus" value="Enviado" />
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="bi bi-truck"></i> Marcar como Enviado
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="UpdateStatus">
+                                                        <input type="hidden" name="transactionId" value="@transaction.Id" />
+                                                        <input type="hidden" name="newStatus" value="Entregue" />
+                                                        <button type="submit" class="dropdown-item">
+                                                            <i class="bi bi-check-circle"></i> Marcar como Entregue
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li><hr class="dropdown-divider" /></li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="UpdateStatus">
+                                                        <input type="hidden" name="transactionId" value="@transaction.Id" />
+                                                        <input type="hidden" name="newStatus" value="Cancelado" />
+                                                        <button type="submit" class="dropdown-item text-danger">
+                                                            <i class="bi bi-x-circle"></i> Cancelar Transação
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="@GetPageUrl(i)">@i</a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalhes -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-receipt"></i> Detalhes da Transação
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailsContent">
+                <div class="text-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pendente" => "bg-warning",
+            "Pago" => "bg-info",
+            "Enviado" => "bg-primary",
+            "Entregue" or "Concluída" => "bg-success",
+            "Cancelado" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPageUrl(int page)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrEmpty(Model.SearchTerm)) query.Add($"searchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
+        if (!string.IsNullOrEmpty(Model.Status)) query.Add($"status={Model.Status}");
+        if (Model.DateFrom.HasValue) query.Add($"dateFrom={Model.DateFrom.Value:yyyy-MM-dd}");
+        if (Model.DateTo.HasValue) query.Add($"dateTo={Model.DateTo.Value:yyyy-MM-dd}");
+        query.Add($"page={page}");
+        return $"/Admin/Transactions?{string.Join("&", query)}";
+    }
+}
+
+@section Scripts {
+    <script>
+        async function showTransactionDetails(id) {
+            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            const contentDiv = document.getElementById('detailsContent');
+            contentDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div></div>';
+            modal.show();
+
+            try {
+                const response = await fetch(`/api/TransactionsApi/${id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    contentDiv.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">ID</dt>
+                                    <dd class="col-sm-8">#${data.id}</dd>
+
+                                    <dt class="col-sm-4">Data</dt>
+                                    <dd class="col-sm-8">${new Date(data.date).toLocaleString('pt-PT')}</dd>
+
+                                    <dt class="col-sm-4">Preço</dt>
+                                    <dd class="col-sm-8 fw-bold text-primary">${data.price.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</dd>
+
+                                    <dt class="col-sm-4">Status</dt>
+                                    <dd class="col-sm-8"><span class="badge ${getStatusBadge(data.status)}">${data.status}</span></dd>
+
+                                    <dt class="col-sm-4">Método</dt>
+                                    <dd class="col-sm-8">${data.paymentMethod || 'Carteira Virtual'}</dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Item</dt>
+                                    <dd class="col-sm-8"><strong>${data.item?.name || 'N/A'}</strong></dd>
+
+                                    <dt class="col-sm-4">Vendedor</dt>
+                                    <dd class="col-sm-8">${data.seller?.name || 'N/A'}</dd>
+
+                                    <dt class="col-sm-4">Comprador</dt>
+                                    <dd class="col-sm-8">${data.buyer?.name || 'N/A'}</dd>
+
+                                    <dt class="col-sm-4">Entrega</dt>
+                                    <dd class="col-sm-8">${data.shippingAddress || 'N/A'}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = '<div class="alert alert-danger">Erro ao carregar detalhes da transação.</div>';
+                }
+            } catch (error) {
+                contentDiv.innerHTML = '<div class="alert alert-danger">Erro ao carregar detalhes da transação.</div>';
+            }
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                'Pendente': 'bg-warning',
+                'Pago': 'bg-info',
+                'Enviado': 'bg-primary',
+                'Entregue': 'bg-success',
+                'Concluída': 'bg-success',
+                'Cancelado': 'bg-danger'
+            };
+            return map[status] || 'bg-secondary';
+        }
+    </script>
+}
