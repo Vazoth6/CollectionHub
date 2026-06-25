@@ -2,10 +2,17 @@
 @model CollectionHub.Pages.Shop.IndexModel
 @{
     ViewData["Title"] = "Marketplace - CollectionHub";
+
+    var hasSelectedCategories = Model.SelectedCategories != null && Model.SelectedCategories.Any();
+    var hasSearchFilter = !string.IsNullOrWhiteSpace(Model.SearchTerm);
+    var hasMinPriceFilter = Model.MinPrice.HasValue && Model.MinPrice.Value > 0;
+    var hasMaxPriceFilter = Model.MaxPrice.HasValue && Model.MaxPrice.Value < 5000;
+    var hasPriceFilter = hasMinPriceFilter || hasMaxPriceFilter;
+    var hasSortFilter = !string.IsNullOrWhiteSpace(Model.SortBy) && Model.SortBy != "name_asc";
+    var hasAnyActiveFilter = hasSelectedCategories || hasSearchFilter || hasPriceFilter || hasSortFilter;
 }
 
 <div class="container-fluid px-4">
-    <!-- Hero Section -->
     <div class="hero-section text-center py-5 mb-4">
         <div class="container">
             <h1 class="display-4 fw-bold text-white mb-3">Loja</h1>
@@ -13,7 +20,7 @@
             @if (User.Identity.IsAuthenticated && (User.IsInRole("Vendedor") || User.IsInRole("Admin")))
             {
                 <a asp-page="Create" class="btn btn-light btn-lg px-5">
-                    <i class="bi bi-plus-circle"></i> Vender Item
+                    <i class="bi bi-plus-circle"></i> Vender Coleccionável
                 </a>
             }
         </div>
@@ -21,40 +28,44 @@
 
     <div class="container">
         <div class="row g-4">
-            <!-- Sidebar com Filtros -->
             <div class="col-lg-3">
-                <div class="filters-card">
+                <div class="filters-card @(hasAnyActiveFilter ? "filters-card-active" : "")">
                     <div class="filters-header">
                         <i class="bi bi-funnel"></i>
                         <h5 class="mb-0">Filtros</h5>
+                        @if (hasAnyActiveFilter)
+                        {
+                            <span class="active-filters-pill">Ativos</span>
+                        }
                     </div>
 
                     <form method="get" id="filterForm">
-                        <!-- Categorias (Checkboxes) -->
-                        <div class="filter-section">
+                        <input type="hidden" name="SearchTerm" id="SearchTermHidden" value="@Model.SearchTerm" />
+
+                        <div class="filter-section @(hasSelectedCategories ? "filter-section-active" : "")">
                             <label class="filter-label">Categorias</label>
                             <div class="categories-list">
                                 @foreach (var cat in Model.PredefinedCategories)
                                 {
-                                    <div class="form-check mb-2">
+                                    var isCategorySelected = Model.SelectedCategories != null && Model.SelectedCategories.Contains(cat.Name);
+
+                                    <div class="form-check category-filter-option @(isCategorySelected ? "filter-option-selected" : "")">
                                         <input type="checkbox" class="form-check-input"
                                                name="SelectedCategories"
                                                id="cat_@cat.Name.Replace(" ", "_")"
                                                value="@cat.Name"
-                                        @(Model.SelectedCategories != null && Model.SelectedCategories.Contains(cat.Name) ? "checked" : "")>
+                                               checked="@isCategorySelected">
                                         <label class="form-check-label" for="cat_@cat.Name.Replace(" ", "_")">
-                                            <i class="bi @cat.Icon"></i> @cat.Name
+                                            @cat.Name
                                         </label>
                                     </div>
                                 }
                             </div>
                         </div>
 
-                        <!-- Range de Preço -->
-                        <div class="filter-section">
+                        <div class="filter-section @(hasPriceFilter ? "filter-section-active" : "")">
                             <label class="filter-label">Faixa de Preço</label>
 
-                            <!-- Slider duplo -->
                             <div class="price-slider-container">
                                 <div class="price-slider-wrapper">
                                     <div class="price-slider-track">
@@ -68,14 +79,12 @@
                                            value="@(Model.MaxPrice.HasValue ? (int)Math.Round(Model.MaxPrice.Value / 10) * 10 : 5000)" />
                                 </div>
 
-                                <!-- Labels com os valores -->
                                 <div class="price-slider-labels">
                                     <span id="sliderMinDisplay">@(Model.MinPrice.HasValue ? ((int)Math.Round(Model.MinPrice.Value / 10) * 10).ToString("F0") : "0")€</span>
                                     <span id="sliderMaxDisplay">@(Model.MaxPrice.HasValue ? ((int)Math.Round(Model.MaxPrice.Value / 10) * 10).ToString("F0") : "5000")€</span>
                                 </div>
                             </div>
 
-                            <!-- Inputs de valor (min/max) -->
                             <div class="row g-2 mt-2">
                                 <div class="col-6">
                                     <div class="input-group input-group-sm">
@@ -97,15 +106,13 @@
                                 </div>
                             </div>
                             <div class="price-range-hint">
-                                <small><span id="sliderMinDisplay">@(Model.MinPrice?.ToString("F2") ?? "0.25")</span>€ - <span id="sliderMaxDisplay">@(Model.MaxPrice?.ToString("F2") ?? "5000.00")</span>€</small>
+                                <small><span id="sliderMinHint">@(Model.MinPrice?.ToString("F2") ?? "0.00")</span>€ - <span id="sliderMaxHint">@(Model.MaxPrice?.ToString("F2") ?? "5000.00")</span>€</small>
                             </div>
                         </div>
 
-                        <!-- Ordenação -->
-                        <div class="filter-section">
+                        <div class="filter-section @(hasSortFilter ? "filter-section-active" : "")">
                             <label class="filter-label">Ordenar por</label>
-                            <select class="form-select form-select-sm" name="SortBy" id="SortBy"
-                                    onchange="document.getElementById('filterForm').submit()">
+                            <select class="form-select form-select-sm" name="SortBy" id="SortBy">
                                 <option value="name_asc" selected="@(Model.SortBy == "name_asc")">Nome (A-Z)</option>
                                 <option value="name_desc" selected="@(Model.SortBy == "name_desc")">Nome (Z-A)</option>
                                 <option value="price_asc" selected="@(Model.SortBy == "price_asc")">Preço (menor para maior)</option>
@@ -113,7 +120,6 @@
                             </select>
                         </div>
 
-                        <!-- Botões de Ação -->
                         <div class="filter-actions">
                             <button type="submit" class="btn btn-primary w-100 mb-2">
                                 <i class="bi bi-search"></i> Aplicar Filtros
@@ -126,9 +132,7 @@
                 </div>
             </div>
 
-            <!-- Grid de Itens -->
             <div class="col-lg-9">
-                <!-- Barra de Pesquisa em cima do grid -->
                 <div class="search-bar-wrapper mb-4">
                     <div class="input-group input-group-lg">
                         <span class="input-group-text bg-white border-end-0">
@@ -144,7 +148,6 @@
                     </div>
                 </div>
 
-                <!-- Resultados Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h4 class="mb-0">Itens Disponíveis</h4>
@@ -159,7 +162,6 @@
                     </div>
                 </div>
 
-                <!-- Grid -->
                 <div class="row g-4" id="itemsGrid">
                     @if (Model.Items.Any())
                     {
@@ -209,11 +211,11 @@
                         <div class="col-12">
                             <div class="empty-state">
                                 <i class="bi bi-inbox"></i>
-                                <h4>Nenhum item encontrado</h4>
+                                <h4>Nenhum coleccionável encontrado</h4>
                                 <p>Tente ajustar os filtros ou</p>
                                 @if (User.IsInRole("Vendedor") || User.IsInRole("Admin"))
                                 {
-                                    <a asp-page="Create" class="btn btn-primary">Vender um item</a>
+                                    <a asp-page="Create" class="btn btn-primary">Vender um coleccionável</a>
                                 }
                                 else
                                 {
@@ -224,7 +226,6 @@
                     }
                 </div>
 
-                <!-- Paginação -->
                 @if (Model.TotalPages > 1)
                 {
                     <nav aria-label="Page navigation" class="mt-5">
@@ -288,7 +289,6 @@
     </div>
 </div>
 
-<!-- Modal de Compra -->
 <div class="modal fade" id="buyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -334,15 +334,13 @@
 
 @section Styles {
     <style>
-        /* Hero Section */
         .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, orange 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 0 0 30px 30px;
             margin-top: -1.5rem;
             margin-bottom: 2rem;
         }
 
-        /* Filters Card */
         .filters-card {
             background: white;
             border-radius: 16px;
@@ -350,10 +348,28 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             position: sticky;
             top: 20px;
+            border: 1px solid transparent;
+        }
+
+        .filters-card-active {
+            border-color: rgba(102, 126, 234, 0.45);
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.18);
+        }
+
+        .active-filters-pill {
+            margin-left: auto;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(102, 126, 234, 0.12);
+            color: #667eea;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .filters-header {
-            padding: 1.25rem 1.5rem;
+            padding: 1rem 1.25rem;
             border-bottom: 1px solid #eef2f6;
             display: flex;
             align-items: center;
@@ -370,45 +386,78 @@
             }
 
         .filter-section {
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1.25rem;
             border-bottom: 1px solid #eef2f6;
+            transition: background-color 0.2s ease, border-left-color 0.2s ease;
+            border-left: 4px solid transparent;
         }
 
+        .filter-section-active {
+            background: rgba(102, 126, 234, 0.07);
+            border-left-color: #667eea;
+        }
+
+            .filter-section-active .filter-label {
+                color: #667eea;
+            }
+
         .filter-label {
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #6c757d;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             display: block;
         }
 
         .categories-list {
-            max-height: 300px;
-            overflow-y: auto;
+            max-height: none;
+            overflow: visible;
         }
 
             .categories-list .form-check {
                 padding-left: 0;
+                margin-bottom: 0;
             }
 
-            .categories-list .form-check-input {
-                margin-right: 10px;
-                cursor: pointer;
+        .category-filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .category-filter-option:hover {
+                background: #f8f9fa;
             }
 
-            .categories-list .form-check-label {
-                cursor: pointer;
-                font-size: 0.9rem;
-                color: #495057;
-            }
+        .categories-list .form-check-input {
+            margin: 0;
+            cursor: pointer;
+            width: 0.95rem;
+            height: 0.95rem;
+        }
 
-                .categories-list .form-check-label i {
-                    margin-right: 8px;
-                    color: #6c757d;
-                    font-size: 0.85rem;
-                }
+        .categories-list .form-check-label {
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: #495057;
+            flex: 1;
+            line-height: 1.15;
+        }
+
+        .filter-option-selected {
+            background: rgba(102, 126, 234, 0.12);
+            box-shadow: inset 0 0 0 1px rgba(102, 126, 234, 0.25);
+        }
+
+            .filter-option-selected .form-check-label {
+                color: #4f5fd5;
+                font-weight: 700;
+            }
 
         .price-range-hint {
             margin-top: 5px;
@@ -416,18 +465,16 @@
             font-size: 0.7rem;
         }
 
-        /* Price Slider Styles */
         .price-slider-container {
-            padding: 15px 0 5px 0;
+            padding: 12px 0 4px 0;
             position: relative;
         }
 
         .price-slider-wrapper {
             position: relative;
-            height: 36px;
+            height: 32px;
             display: flex;
             align-items: center;
-            padding: 0 0px;
         }
 
         .price-slider-track {
@@ -499,7 +546,7 @@
                 width: 22px;
                 height: 22px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, #667eea 0%, red 100%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 cursor: pointer;
                 pointer-events: auto;
                 border: 3px solid white;
@@ -518,23 +565,6 @@
                 pointer-events: none;
             }
 
-            .price-slider::-ms-track {
-                height: 6px;
-                background: transparent;
-                border: none;
-                color: transparent;
-            }
-
-            .price-slider::-ms-thumb {
-                width: 22px;
-                height: 22px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #667eea 0%, red 100%);
-                cursor: pointer;
-                border: 3px solid white;
-                box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
-            }
-
         .price-slider-min {
             z-index: 4;
         }
@@ -546,19 +576,19 @@
         .price-slider-labels {
             display: flex;
             justify-content: space-between;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            margin-top: 8px;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #495057;
         }
 
             .price-slider-labels span {
                 background: #f8f9fa;
-                padding: 4px 14px;
+                padding: 4px 12px;
                 border-radius: 20px;
                 border: 1px solid #e9ecef;
-                font-size: 0.85rem;
-                min-width: 60px;
+                font-size: 0.8rem;
+                min-width: 58px;
                 text-align: center;
             }
 
@@ -570,23 +600,10 @@
                     color: #764ba2;
                 }
 
-        .price-slider-ticks {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 6px;
-            padding: 0 2px;
-        }
-
-            .price-slider-ticks span {
-                font-size: 0.6rem;
-                color: #adb5bd;
-            }
-
         .filter-actions {
-            padding: 1.25rem 1.5rem;
+            padding: 1rem 1.25rem;
         }
 
-        /* Search Bar */
         .search-bar-wrapper {
             background: white;
             border-radius: 50px;
@@ -613,7 +630,6 @@
                 padding: 0.75rem 1.5rem;
             }
 
-        /* Item Card */
         .item-card {
             background: white;
             border-radius: 16px;
@@ -738,7 +754,7 @@
         }
 
         .btn-buy {
-            background: linear-gradient(135deg, #667eea 0%, orange 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             color: white;
             padding: 6px 12px;
@@ -765,7 +781,6 @@
                 color: white;
             }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -787,7 +802,6 @@
                 margin-bottom: 1rem;
             }
 
-        /* Pagination */
         .pagination {
             gap: 6px;
         }
@@ -810,7 +824,6 @@
             border-color: transparent;
         }
 
-        /* Responsive */
         @@media (max-width: 768px) {
             .hero-section {
                 border-radius: 0 0 20px 20px;
@@ -825,17 +838,12 @@
                 margin-bottom: 1rem;
             }
 
-            .item-card {
-                margin-bottom: 0;
-            }
-
             .search-bar-wrapper .btn {
                 padding: 0.5rem 1rem;
                 font-size: 0.875rem;
             }
         }
 
-        /* Link sem decoração */
         a.text-decoration-none {
             color: inherit;
         }
@@ -858,35 +866,36 @@
             new bootstrap.Modal(document.getElementById('buyModal')).show();
         }
 
-        // Função para submeter o formulário com os parâmetros atuais
         function submitFilterForm() {
             const form = document.getElementById('filterForm');
             const searchValue = document.getElementById('SearchTermHeader').value;
 
-            // Atualizar o input de pesquisa escondido
-            let searchInput = document.querySelector('input[name="SearchTerm"]');
+            let searchInput = form.querySelector('input[name="SearchTerm"]');
             if (!searchInput) {
                 searchInput = document.createElement('input');
                 searchInput.type = 'hidden';
                 searchInput.name = 'SearchTerm';
                 form.appendChild(searchInput);
             }
-            searchInput.value = searchValue;
 
+            searchInput.value = searchValue;
             form.submit();
         }
 
-                // ⭐ PRICE SLIDER - Sincronização entre slider e inputs
-        (function() {
+        (function () {
             const sliderMin = document.getElementById('priceSliderMin');
             const sliderMax = document.getElementById('priceSliderMax');
             const inputMin = document.getElementById('MinPrice');
             const inputMax = document.getElementById('MaxPrice');
             const displayMin = document.getElementById('sliderMinDisplay');
             const displayMax = document.getElementById('sliderMaxDisplay');
+            const hintMin = document.getElementById('sliderMinHint');
+            const hintMax = document.getElementById('sliderMaxHint');
             const trackFill = document.getElementById('trackFill');
             const minVal = 0;
             const maxVal = 5000;
+
+            if (!sliderMin || !sliderMax || !inputMin || !inputMax) return;
 
             function updateTrack() {
                 const min = parseInt(sliderMin.value);
@@ -905,10 +914,16 @@
             function updateDisplay() {
                 const min = parseInt(sliderMin.value);
                 const max = parseInt(sliderMax.value);
+
                 displayMin.textContent = min + '€';
                 displayMax.textContent = max + '€';
+
+                if (hintMin) hintMin.textContent = min.toFixed(2);
+                if (hintMax) hintMax.textContent = max.toFixed(2);
+
                 inputMin.value = min;
                 inputMax.value = max;
+
                 updateTrack();
             }
 
@@ -930,11 +945,11 @@
 
                 sliderMin.value = min;
                 sliderMax.value = max;
+
                 updateDisplay();
             }
 
-            // ⭐ Event listeners para os sliders - APENAS ATUALIZA A UI, NÃO SUBMETE
-            sliderMin.addEventListener('input', function() {
+            sliderMin.addEventListener('input', function () {
                 let min = parseInt(this.value);
                 let max = parseInt(sliderMax.value);
 
@@ -944,10 +959,9 @@
                 }
 
                 updateDisplay();
-
             });
 
-            sliderMax.addEventListener('input', function() {
+            sliderMax.addEventListener('input', function () {
                 let min = parseInt(sliderMin.value);
                 let max = parseInt(this.value);
 
@@ -959,51 +973,54 @@
                 updateDisplay();
             });
 
-            // Inicializar
+            inputMin.addEventListener('change', function () {
+                let value = parseFloat(this.value);
+
+                if (value < 0) value = 0;
+                if (value > 5000) value = 5000;
+
+                value = roundToStep(value);
+
+                if (value > parseInt(sliderMax.value) - 10) {
+                    value = parseInt(sliderMax.value) - 10;
+                }
+
+                if (value < 0) value = 0;
+
+                sliderMin.value = value;
+                updateDisplay();
+            });
+
+            inputMax.addEventListener('change', function () {
+                let value = parseFloat(this.value);
+
+                if (value < 0) value = 0;
+                if (value > 5000) value = 5000;
+
+                value = roundToStep(value);
+
+                if (value < parseInt(sliderMin.value) + 10) {
+                    value = parseInt(sliderMin.value) + 10;
+                }
+
+                if (value > 5000) value = 5000;
+
+                sliderMax.value = value;
+                updateDisplay();
+            });
+
             initialize();
         })();
 
-
-        // Event listener para o botão de pesquisa
-        document.getElementById('searchButton')?.addEventListener('click', function() {
+        document.getElementById('searchButton')?.addEventListener('click', function () {
             submitFilterForm();
         });
 
-        // Event listener para Enter na pesquisa
-        document.getElementById('SearchTermHeader')?.addEventListener('keypress', function(e) {
+        document.getElementById('SearchTermHeader')?.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 submitFilterForm();
             }
-        });
-
-        // Auto-submit para checkboxes de categoria
-        document.querySelectorAll('input[name="SelectedCategories"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                document.getElementById('filterForm').submit();
-            });
-        });
-
-        // Auto-submit para range de preço com debounce
-        let priceTimeout;
-        document.getElementById('MinPrice')?.addEventListener('change', function() {
-            let value = parseFloat(this.value);
-            if (value < 0.25) this.value = 0.25;
-            if (value > 5000) this.value = 5000;
-            clearTimeout(priceTimeout);
-            priceTimeout = setTimeout(() => {
-                document.getElementById('filterForm').submit();
-            }, 800);
-        });
-
-        document.getElementById('MaxPrice')?.addEventListener('change', function() {
-            let value = parseFloat(this.value);
-            if (value < 0.25) this.value = 0.25;
-            if (value > 5000) this.value = 5000;
-            clearTimeout(priceTimeout);
-            priceTimeout = setTimeout(() => {
-                document.getElementById('filterForm').submit();
-            }, 800);
         });
     </script>
 }
