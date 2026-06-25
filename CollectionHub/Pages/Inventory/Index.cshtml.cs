@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using CollectionHub.Data;
@@ -27,6 +28,53 @@ namespace CollectionHub.Pages.Inventory
         public List<InventoryTransactionDto> Transactions { get; set; } = new();
 
         public async Task OnGetAsync()
+        {
+            await LoadPageAsync();
+        }
+
+        public async Task<IActionResult> OnPostSellItemAsync(int itemId, decimal salePrice)
+        {
+            var userId = await GetCurrentMyUserId();
+
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
+
+            if (salePrice <= 0)
+            {
+                TempData["Error"] = "O preço de venda tem de ser superior a zero.";
+                return RedirectToPage();
+            }
+
+            var userItem = await _context.UserItems
+                .Include(ui => ui.Item)
+                .FirstOrDefaultAsync(ui => ui.UserId == userId && ui.ItemId == itemId);
+
+            if (userItem?.Item == null)
+            {
+                TempData["Error"] = "Este item não pertence à sua coleção.";
+                return RedirectToPage();
+            }
+
+            if (userItem.Item.Status == "Disponível")
+            {
+                TempData["Error"] = "Este item já está à venda.";
+                return RedirectToPage();
+            }
+
+            userItem.Item.Price = salePrice;
+            userItem.Item.Status = "Disponível";
+            userItem.Item.SubmittedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Item colocado à venda com sucesso.";
+            HttpContext.Session.SetString("ActiveProfile", "Vendedor");
+            return RedirectToPage();
+        }
+
+        private async Task LoadPageAsync()
         {
             ReturnUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
 
@@ -59,19 +107,29 @@ namespace CollectionHub.Pages.Inventory
 
         private async Task LoadBuyerProfile(int userId)
         {
-            ItemsPurchased = await _context.Transactions
-                .Include(t => t.Item)
-                .Where(t => t.BuyerId == userId && t.IsPaid)
-                .Select(t => new InventoryItemDto
+            ItemsPurchased = await _context.UserItems
+                .Include(ui => ui.Item)
+                .ThenInclude(i => i!.Category)
+                .Where(ui => ui.UserId == userId && ui.Item != null && ui.Item.Status != "Disponível")
+                .Select(ui => new InventoryItemDto
                 {
-                    Id = t.ItemId,
-                    Name = t.Item != null ? t.Item.Name : "Item removido",
-                    Description = t.Item != null ? t.Item.Description : string.Empty,
-                    Price = t.Price,
-                    ImageUrl = t.Item != null ? t.Item.ImageUrl : null,
-                    Status = t.Status,
-                    PurchaseDate = t.Date,
-                    ShippingAddress = t.ShippingAddress
+                    Id = ui.Item!.Id,
+                    Name = ui.Item.Name,
+                    Description = ui.Item.Description,
+                    Price = ui.Item.Price,
+                    ImageUrl = ui.Item.ImageUrl,
+                    Status = ui.Item.Status,
+                    SubmittedAt = ui.Item.SubmittedAt,
+                    PurchaseDate = _context.Transactions
+                        .Where(t => t.BuyerId == userId && t.ItemId == ui.Item.Id && t.IsPaid)
+                        .OrderByDescending(t => t.Date)
+                        .Select(t => (DateTime?)t.Date)
+                        .FirstOrDefault(),
+                    ShippingAddress = _context.Transactions
+                        .Where(t => t.BuyerId == userId && t.ItemId == ui.Item.Id && t.IsPaid)
+                        .OrderByDescending(t => t.Date)
+                        .Select(t => t.ShippingAddress)
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
 

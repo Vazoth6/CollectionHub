@@ -32,17 +32,15 @@ namespace CollectionHub.Services
         public void AddToCart(CartItem item)
         {
             var cart = GetCart();
-            var existingItem = cart.Items.FirstOrDefault(i => i.Id == item.Id);
 
-            if (existingItem == null)
+            if (cart.Items.Any(i => i.Id == item.Id))
             {
-                cart.Items.Add(item);
-            }
-            else
-            {
-                existingItem.Quantity += 1;
+                SaveCart(cart);
+                return;
             }
 
+            item.Quantity = 1;
+            cart.Items.Add(item);
             SaveCart(cart);
         }
 

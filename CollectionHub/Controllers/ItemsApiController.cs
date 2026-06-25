@@ -237,7 +237,8 @@ namespace CollectionHub.Controllers
                 return BadRequest(new { message = "Este item não está disponível." });
             }
 
-            var sellerId = item.UserItems.FirstOrDefault()?.UserId;
+            var sellerUserItem = item.UserItems.FirstOrDefault();
+            var sellerId = sellerUserItem?.UserId;
 
             if (sellerId == null)
             {
@@ -265,7 +266,24 @@ namespace CollectionHub.Controllers
             buyer.WalletBalance -= item.Price;
             seller.WalletBalance += item.Price;
 
-            item.Status = "Vendido";
+            item.Status = "Na Coleção";
+
+            if (sellerUserItem != null)
+            {
+                _context.UserItems.Remove(sellerUserItem);
+            }
+
+            var buyerAlreadyOwnsItem = await _context.UserItems
+                .AnyAsync(ui => ui.UserId == buyerId && ui.ItemId == item.Id);
+
+            if (!buyerAlreadyOwnsItem)
+            {
+                _context.UserItems.Add(new UserItem
+                {
+                    UserId = buyerId,
+                    ItemId = item.Id
+                });
+            }
 
             var transaction = new Transaction
             {

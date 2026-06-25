@@ -71,6 +71,22 @@ namespace CollectionHub.Pages.Shop
                 return RedirectToPage(new { id = itemId });
             }
 
+            var currentUser = await GetCurrentMyUserAsync();
+
+            if (currentUser != null && item.SellerId == currentUser.Id)
+            {
+                TempData["Error"] = "Não pode adicionar o seu próprio item ao carrinho.";
+                return RedirectToPage(new { id = itemId });
+            }
+
+            var cart = _cartService.GetCart();
+
+            if (cart.Items.Any(i => i.Id == item.Id))
+            {
+                TempData["Error"] = "Este coleccionável já se encontra no carrinho.";
+                return RedirectToPage(new { id = itemId });
+            }
+
             _cartService.AddToCart(new CartItem
             {
                 Id = item.Id,
