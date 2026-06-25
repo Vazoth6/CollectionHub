@@ -87,6 +87,6 @@ O projeto foi desenvolvido utilizando ASP.NET Core Razor Pages para a interface 
 
 * Número: 24851
 
-Licenciatura em Engenharia Informática
-Instituto Politécnico de Tomar
+Licenciatura em Engenharia Informática | 
+Instituto Politécnico de Tomar | 
 Ano Letivo 2025/2026
