@@ -178,10 +178,10 @@ namespace CollectionHub.Pages.Shop
         {
             return categoryName switch
             {
-                string s when s.Contains("Pokemon", StringComparison.OrdinalIgnoreCase) => "bi-pokeball",
+                string s when s.Contains("Pokémon", StringComparison.OrdinalIgnoreCase) => "bi-pokeball",
                 string s when s.Contains("Yu-gi-oh", StringComparison.OrdinalIgnoreCase) => "bi-suit-diamond",
                 string s when s.Contains("Invizimal", StringComparison.OrdinalIgnoreCase) => "bi-dragon",
-                string s when s.Contains("Vídeo", StringComparison.OrdinalIgnoreCase) || s.Contains("Video", StringComparison.OrdinalIgnoreCase) => "bi-controller",
+                string s when s.Contains("Videojogo", StringComparison.OrdinalIgnoreCase) || s.Contains("Video", StringComparison.OrdinalIgnoreCase) => "bi-controller",
                 string s when s.Contains("Tabuleiro", StringComparison.OrdinalIgnoreCase) || s.Contains("Board", StringComparison.OrdinalIgnoreCase) => "bi-grid",
                 string s when s.Contains("Moeda", StringComparison.OrdinalIgnoreCase) || s.Contains("Coin", StringComparison.OrdinalIgnoreCase) => "bi-coin",
                 string s when s.Contains("Carta", StringComparison.OrdinalIgnoreCase) || s.Contains("Card", StringComparison.OrdinalIgnoreCase) => "bi-suit-club",
@@ -196,10 +196,10 @@ namespace CollectionHub.Pages.Shop
         {
             return new List<CategoryDisplayDto>
             {
-                new CategoryDisplayDto { Name = "Carta Pokemon", Icon = "bi-pokeball" },
+                new CategoryDisplayDto { Name = "Carta Pokémon", Icon = "bi-pokeball" },
                 new CategoryDisplayDto { Name = "Carta Yu-gi-oh", Icon = "bi-suit-diamond" },
                 new CategoryDisplayDto { Name = "Carta Invizimal", Icon = "bi-dragon" },
-                new CategoryDisplayDto { Name = "Vídeo-jogo", Icon = "bi-controller" },
+                new CategoryDisplayDto { Name = "Videojogo", Icon = "bi-controller" },
                 new CategoryDisplayDto { Name = "Jogo de Tabuleiro", Icon = "bi-grid" },
                 new CategoryDisplayDto { Name = "Moeda", Icon = "bi-coin" }
             };
@@ -287,7 +287,7 @@ namespace CollectionHub.Pages.Shop
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao carregar itens: {ex.Message}");
+                Console.WriteLine($"Erro ao carregar: {ex.Message}");
                 Items = new List<ItemResponseDto>();
                 TotalPages = 1;
                 TotalItems = 0;

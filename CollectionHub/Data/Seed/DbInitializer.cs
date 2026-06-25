@@ -157,10 +157,10 @@ namespace CollectionHub.Data.Seed
         {
             var categories = new List<Category>
             {
-                new Category { Name = "Carta Pokemon" },
+                new Category { Name = "Carta Pokémon" },
                 new Category { Name = "Carta Yu-gi-oh" },
                 new Category { Name = "Carta Invizimal" },
-                new Category { Name = "Vídeo-jogo" },
+                new Category { Name = "Videojogo" },
                 new Category { Name = "Jogo de Tabuleiro" },
                 new Category { Name = "Moeda" }
             };
@@ -179,10 +179,10 @@ namespace CollectionHub.Data.Seed
         private static async Task AddItemsAsync(ApplicationDbContext context)
         {
             // Obter as categorias
-            var categoriaPokemon = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Carta Pokemon");
+            var categoriaPokemon = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Carta Pokémon");
             var categoriaYugioh = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Carta Yu-gi-oh");
             var categoriaInvizimal = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Carta Invizimal");
-            var categoriaVideoJogo = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Vídeo-jogo");
+            var categoriaVideoJogo = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Videojogo");
             var categoriaJogoTabuleiro = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Jogo de Tabuleiro");
             var categoriaMoeda = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Moeda");
 
@@ -194,7 +194,7 @@ namespace CollectionHub.Data.Seed
 
             var items = new List<Item>
             {
-                // Cartas Pokemon
+                // Cartas Pokémon
                 new Item
                 {
                     Name = "Pikachu 1st Edition",
@@ -280,7 +280,7 @@ namespace CollectionHub.Data.Seed
                     ImageUrl = "/images/items/dragon-card.jpg"
                 },
 
-                // Vídeo-jogos
+                // Videojogos
                 new Item
                 {
                     Name = "The Legend of Zelda: Tears of the Kingdom",

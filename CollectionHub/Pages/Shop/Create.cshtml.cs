@@ -168,10 +168,10 @@ namespace CollectionHub.Pages.Shop
         {
             var categories = new List<CategoryResponseDto>
             {
-                new CategoryResponseDto { Id = 1, Name = "Carta Pokemon" },
+                new CategoryResponseDto { Id = 1, Name = "Carta Pokémon" },
                 new CategoryResponseDto { Id = 2, Name = "Carta Yu-gi-oh" },
                 new CategoryResponseDto { Id = 3, Name = "Carta Invizimal" },
-                new CategoryResponseDto { Id = 4, Name = "Vídeo-jogo" },
+                new CategoryResponseDto { Id = 4, Name = "Videojogo" },
                 new CategoryResponseDto { Id = 5, Name = "Jogo de Tabuleiro" },
                 new CategoryResponseDto { Id = 6, Name = "Moeda" }
             };

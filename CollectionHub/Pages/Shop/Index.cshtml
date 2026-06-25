@@ -9,7 +9,7 @@
     <div class="hero-section text-center py-5 mb-4">
         <div class="container">
             <h1 class="display-4 fw-bold text-white mb-3">Loja</h1>
-            <p class="lead text-white-50 mb-4">Descubra vídeo-jogos, cartas, moedas e muito mais de vendedores verificados</p>
+            <p class="lead text-white-50 mb-4">Descubra videojogos, cartas, moedas e muito mais de vendedores verificados</p>
             @if (User.Identity.IsAuthenticated && (User.IsInRole("Vendedor") || User.IsInRole("Admin")))
             {
                 <a asp-page="Create" class="btn btn-light btn-lg px-5">
@@ -50,7 +50,6 @@
                             </div>
                         </div>
 
-                        <!-- Range de Preço -->
                         <!-- Range de Preço -->
                         <div class="filter-section">
                             <label class="filter-label">Faixa de Preço</label>
@@ -337,7 +336,7 @@
     <style>
         /* Hero Section */
         .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, orange 100%);
             border-radius: 0 0 30px 30px;
             margin-top: -1.5rem;
             margin-bottom: 2rem;
@@ -500,7 +499,7 @@
                 width: 22px;
                 height: 22px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%, red 100%);
                 cursor: pointer;
                 pointer-events: auto;
                 border: 3px solid white;
@@ -530,7 +529,7 @@
                 width: 22px;
                 height: 22px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #667eea 0%, red 100%);
                 cursor: pointer;
                 border: 3px solid white;
                 box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
@@ -739,7 +738,7 @@
         }
 
         .btn-buy {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, orange 100%);
             border: none;
             color: white;
             padding: 6px 12px;
@@ -807,7 +806,7 @@
             }
 
         .page-item.active .page-link {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, orange 100%);
             border-color: transparent;
         }
 

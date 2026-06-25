@@ -61,13 +61,13 @@ namespace CollectionHub.Pages.Shop
 
             if (item == null)
             {
-                TempData["Error"] = "O item não foi encontrado.";
+                TempData["Error"] = "Não foi encontrado o coleccionável.";
                 return RedirectToPage("/Shop/Index");
             }
 
             if (!string.Equals(item.Status, "Disponível", StringComparison.OrdinalIgnoreCase))
             {
-                TempData["Error"] = "Este item não está disponível para compra.";
+                TempData["Error"] = "Este coleccionável não está disponível para compra.";
                 return RedirectToPage(new { id = itemId });
             }
 
@@ -82,7 +82,7 @@ namespace CollectionHub.Pages.Shop
                 SellerName = item.SellerName ?? "N/A"
             });
 
-            TempData["Success"] = "Item adicionado ao carrinho.";
+            TempData["Success"] = "Coleccionável adicionado ao carrinho.";
             return RedirectToPage(new { id = itemId });
         }
 
@@ -92,7 +92,7 @@ namespace CollectionHub.Pages.Shop
 
             if (currentUser == null)
             {
-                TempData["Error"] = "Tens de iniciar sessão para gostar de artigos.";
+                TempData["Error"] = "Inicie sessão para gostar de artigos.";
                 return RedirectToPage(new { id = itemId });
             }
 
@@ -100,7 +100,7 @@ namespace CollectionHub.Pages.Shop
 
             if (!itemExists)
             {
-                TempData["Error"] = "O item não foi encontrado.";
+                TempData["Error"] = "O coleccionável não foi encontrado.";
                 return RedirectToPage("/Shop/Index");
             }
 
@@ -151,7 +151,7 @@ namespace CollectionHub.Pages.Shop
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao carregar item: {ex.Message}");
+                Console.WriteLine($"Erro ao carregar: {ex.Message}");
                 return null;
             }
         }

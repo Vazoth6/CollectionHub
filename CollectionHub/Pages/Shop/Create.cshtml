@@ -1,7 +1,7 @@
 ﻿@page "/Shop/Create"
 @model CollectionHub.Pages.Shop.CreateModel
 @{
-    ViewData["Title"] = "Vender Item - CollectionHub";
+    ViewData["Title"] = "Vender Coleccionável - CollectionHub";
 }
 
 <div class="container mt-4">
@@ -33,7 +33,7 @@
                     <form method="post" enctype="multipart/form-data" id="itemForm">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                        <!-- Nome do Item -->
+                        <!-- Nome do Coleccionável -->
                         <div class="mb-3">
                             <label asp-for="CreateItem.Name" class="form-label fw-bold">
                                 <i class="bi bi-tag"></i> Nome do Item
