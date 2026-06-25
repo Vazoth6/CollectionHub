@@ -1,10 +1,189 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Página Inicial";
+
+    var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+    var canSell = isAuthenticated && (User.IsInRole("Vendedor") || User.IsInRole("Admin"));
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="home-hero">
+    <div class="home-hero-content">
+        <span class="home-eyebrow">Marketplace para colecionadores</span>
+        <h1>Compra, vende e organiza os teus colecionáveis num só lugar.</h1>
+        <p>Encontra cartas, videojogos, moedas e jogos de tabuleiro publicados por outros utilizadores da CollectionHub.</p>
+        <div class="home-actions">
+            <a asp-page="/Shop/Index" class="btn btn-primary btn-lg">
+                <i class="bi bi-bag"></i> Explorar Loja
+            </a>
+
+            @if (canSell)
+            {
+                <a asp-page="/Shop/Create" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-plus-circle"></i> Vender Item
+                </a>
+            }
+            else if (!isAuthenticated)
+            {
+                <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-light btn-lg">
+                    Criar Conta
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="home-section">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-md-4">
+            <div class="home-card">
+                <i class="bi bi-search"></i>
+                <h3>Descobre itens</h3>
+                <p>Pesquisa por nome, descrição, categoria e preço para encontrares exatamente o que procuras.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="home-card">
+                <i class="bi bi-shield-check"></i>
+                <h3>Compra com confiança</h3>
+                <p>Consulta detalhes dos artigos, vendedor e preço antes de avançar para a compra.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="home-card">
+                <i class="bi bi-box-seam"></i>
+                <h3>Gere a coleção</h3>
+                <p>Depois de iniciares sessão, acompanha os teus itens e organiza o teu inventário.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-section home-cta">
+    <div>
+        <h2>Pronto para começar?</h2>
+        <p>Vai para a loja e explora os colecionáveis disponíveis agora.</p>
+    </div>
+    <a asp-page="/Shop/Index" class="btn btn-light btn-lg">Ver Marketplace</a>
+</section>
+
+@section Styles {
+    <style>
+        .home-hero {
+            min-height: 440px;
+            border-radius: 28px;
+            padding: 4rem 2rem;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 55%, #111827 100%);
+            color: white;
+            box-shadow: 0 20px 60px rgba(17, 24, 39, .18);
+            overflow: hidden;
+            position: relative;
+        }
+
+            .home-hero::after {
+                content: "";
+                position: absolute;
+                width: 360px;
+                height: 360px;
+                right: -120px;
+                top: -80px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, .12);
+            }
+
+        .home-hero-content {
+            max-width: 760px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .home-eyebrow {
+            display: inline-block;
+            margin-bottom: 1rem;
+            padding: .45rem .85rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .16);
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        .home-hero h1 {
+            font-size: clamp(2.4rem, 5vw, 4.6rem);
+            line-height: 1;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+        }
+
+        .home-hero p {
+            max-width: 640px;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, .82);
+            margin-bottom: 2rem;
+        }
+
+        .home-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .home-section {
+            margin-top: 3rem;
+        }
+
+        .home-card {
+            height: 100%;
+            padding: 2rem;
+            border-radius: 22px;
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, .06);
+            box-shadow: 0 12px 35px rgba(17, 24, 39, .08);
+        }
+
+            .home-card i {
+                font-size: 2.2rem;
+                color: #2563eb;
+                margin-bottom: 1rem;
+            }
+
+            .home-card h3 {
+                font-weight: 800;
+                margin-bottom: .75rem;
+            }
+
+            .home-card p {
+                color: #6b7280;
+                margin: 0;
+            }
+
+        .home-cta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: 2rem;
+            border-radius: 24px;
+            background: #111827;
+            color: #fff;
+        }
+
+            .home-cta p {
+                color: rgba(255, 255, 255, .72);
+                margin: 0;
+            }
+
+        @@media (max-width: 768px) {
+            .home-hero {
+                padding: 3rem 1.25rem;
+                border-radius: 20px;
+            }
+
+            .home-cta {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+}

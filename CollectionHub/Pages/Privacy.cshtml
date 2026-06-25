@@ -1,8 +1,113 @@
 ﻿@page
 @model PrivacyModel
 @{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Privacidade";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<section class="privacy-hero">
+    <span>CollectionHub</span>
+    <h1>Política de Privacidade</h1>
+    <p>Esta página explica, de forma simples, que dados podem ser usados pela plataforma e para que servem.</p>
+</section>
+
+<section class="privacy-content">
+    <div class="privacy-card">
+        <h2>1. Dados de conta</h2>
+        <p>Para usar algumas funcionalidades, como comprar, vender ou gerir inventário, a CollectionHub pode guardar dados associados à tua conta, como nome de utilizador, email e perfil de utilização.</p>
+    </div>
+
+    <div class="privacy-card">
+        <h2>2. Dados dos anúncios</h2>
+        <p>Quando publicas um item, podem ser guardadas informações como título, descrição, categoria, preço, imagem e vendedor associado ao anúncio.</p>
+    </div>
+
+    <div class="privacy-card">
+        <h2>3. Carrinho, compras e inventário</h2>
+        <p>A plataforma pode registar itens adicionados ao carrinho, compras realizadas e artigos associados ao inventário do utilizador, para permitir o funcionamento normal do marketplace.</p>
+    </div>
+
+    <div class="privacy-card">
+        <h2>4. Finalidade dos dados</h2>
+        <p>Os dados são usados para autenticação, gestão de anúncios, organização do inventário, processamento de compras e melhoria da experiência de utilização.</p>
+    </div>
+
+    <div class="privacy-card">
+        <h2>5. Segurança</h2>
+        <p>A CollectionHub deve proteger os dados dos utilizadores e evitar o acesso não autorizado. As palavras-passe devem ser guardadas de forma segura através do sistema de autenticação da aplicação.</p>
+    </div>
+
+    <div class="privacy-card">
+        <h2>6. Responsabilidade do utilizador</h2>
+        <p>O utilizador deve manter os seus dados de acesso seguros e evitar publicar informações pessoais sensíveis nas descrições dos anúncios.</p>
+    </div>
+
+    <div class="privacy-card">
+        <h2>7. Contacto</h2>
+        <p>Para pedidos relacionados com privacidade, correção ou remoção de dados, o utilizador deve contactar a equipa responsável pela aplicação.</p>
+    </div>
+</section>
+
+@section Styles {
+    <style>
+        .privacy-hero {
+            padding: 3rem 2rem;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #1d4ed8 0%, #7c3aed 60%, #111827 100%);
+            color: #fff;
+            box-shadow: 0 20px 60px rgba(17, 24, 39, .16);
+            margin-bottom: 2rem;
+        }
+
+            .privacy-hero span {
+                display: inline-block;
+                margin-bottom: .75rem;
+                padding: .4rem .8rem;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, .16);
+                font-weight: 700;
+            }
+
+            .privacy-hero h1 {
+                font-weight: 800;
+                margin-bottom: .75rem;
+            }
+
+            .privacy-hero p {
+                max-width: 720px;
+                color: rgba(255, 255, 255, .82);
+                margin: 0;
+            }
+
+        .privacy-content {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .privacy-card {
+            padding: 1.5rem;
+            border-radius: 20px;
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, .06);
+            box-shadow: 0 10px 30px rgba(17, 24, 39, .07);
+        }
+
+            .privacy-card h2 {
+                font-size: 1.15rem;
+                font-weight: 800;
+                margin-bottom: .5rem;
+                color: #111827;
+            }
+
+            .privacy-card p {
+                color: #6b7280;
+                margin: 0;
+            }
+
+        @@media (max-width: 768px) {
+            .privacy-hero {
+                padding: 2rem 1.25rem;
+                border-radius: 20px;
+            }
+        }
+    </style>
+}

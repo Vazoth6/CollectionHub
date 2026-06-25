@@ -51,16 +51,40 @@
                         </div>
 
                         <!-- Range de Preço -->
+                        <!-- Range de Preço -->
                         <div class="filter-section">
                             <label class="filter-label">Faixa de Preço</label>
-                            <div class="row g-2">
+
+                            <!-- Slider duplo -->
+                            <div class="price-slider-container">
+                                <div class="price-slider-wrapper">
+                                    <div class="price-slider-track">
+                                        <div class="price-slider-track-fill" id="trackFill"></div>
+                                    </div>
+                                    <input type="range" class="price-slider price-slider-min" id="priceSliderMin"
+                                           min="0" max="5000" step="10"
+                                           value="@(Model.MinPrice.HasValue ? (int)Math.Round(Model.MinPrice.Value / 10) * 10 : 0)" />
+                                    <input type="range" class="price-slider price-slider-max" id="priceSliderMax"
+                                           min="0" max="5000" step="10"
+                                           value="@(Model.MaxPrice.HasValue ? (int)Math.Round(Model.MaxPrice.Value / 10) * 10 : 5000)" />
+                                </div>
+
+                                <!-- Labels com os valores -->
+                                <div class="price-slider-labels">
+                                    <span id="sliderMinDisplay">@(Model.MinPrice.HasValue ? ((int)Math.Round(Model.MinPrice.Value / 10) * 10).ToString("F0") : "0")€</span>
+                                    <span id="sliderMaxDisplay">@(Model.MaxPrice.HasValue ? ((int)Math.Round(Model.MaxPrice.Value / 10) * 10).ToString("F0") : "5000")€</span>
+                                </div>
+                            </div>
+
+                            <!-- Inputs de valor (min/max) -->
+                            <div class="row g-2 mt-2">
                                 <div class="col-6">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">€</span>
                                         <input type="number" class="form-control" name="MinPrice"
                                                id="MinPrice" placeholder="0.25"
-                                               value="@Model.MinPrice"
-                                               step="0.01" min="0.25" max="5000" />
+                                               value="@(Model.MinPrice ?? 0.25m)"
+                                               step="0.01" min="0" max="5000" />
                                     </div>
                                 </div>
                                 <div class="col-6">
@@ -68,13 +92,13 @@
                                         <span class="input-group-text">€</span>
                                         <input type="number" class="form-control" name="MaxPrice"
                                                id="MaxPrice" placeholder="5000"
-                                               value="@Model.MaxPrice"
-                                               step="0.01" min="0.25" max="5000" />
+                                               value="@(Model.MaxPrice ?? 5000m)"
+                                               step="0.5" min="0" max="5000" />
                                     </div>
                                 </div>
                             </div>
                             <div class="price-range-hint">
-                                <small>€0.25 - €5.000</small>
+                                <small><span id="sliderMinDisplay">@(Model.MinPrice?.ToString("F2") ?? "0.25")</span>€ - <span id="sliderMaxDisplay">@(Model.MaxPrice?.ToString("F2") ?? "5000.00")</span>€</small>
                             </div>
                         </div>
 
@@ -393,6 +417,172 @@
             font-size: 0.7rem;
         }
 
+        /* Price Slider Styles */
+        .price-slider-container {
+            padding: 15px 0 5px 0;
+            position: relative;
+        }
+
+        .price-slider-wrapper {
+            position: relative;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 0px;
+        }
+
+        .price-slider-track {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 4px;
+            transform: translateY(-50%);
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .price-slider-track-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            z-index: 2;
+            pointer-events: none;
+            width: 100%;
+        }
+
+        .price-slider {
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            pointer-events: none;
+            z-index: 3;
+            margin: 0;
+            padding: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+            .price-slider::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                cursor: pointer;
+                pointer-events: auto;
+                border: 3px solid white;
+                box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+                transition: all 0.2s ease;
+                z-index: 4;
+                position: relative;
+            }
+
+                .price-slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.15);
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.6);
+                }
+
+                .price-slider::-webkit-slider-thumb:active {
+                    transform: scale(0.95);
+                }
+
+            .price-slider::-moz-range-thumb {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                cursor: pointer;
+                pointer-events: auto;
+                border: 3px solid white;
+                box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+            }
+
+            .price-slider::-webkit-slider-runnable-track {
+                height: 6px;
+                background: transparent;
+                pointer-events: none;
+            }
+
+            .price-slider::-moz-range-track {
+                height: 6px;
+                background: transparent;
+                pointer-events: none;
+            }
+
+            .price-slider::-ms-track {
+                height: 6px;
+                background: transparent;
+                border: none;
+                color: transparent;
+            }
+
+            .price-slider::-ms-thumb {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                cursor: pointer;
+                border: 3px solid white;
+                box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+            }
+
+        .price-slider-min {
+            z-index: 4;
+        }
+
+        .price-slider-max {
+            z-index: 5;
+        }
+
+        .price-slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+            .price-slider-labels span {
+                background: #f8f9fa;
+                padding: 4px 14px;
+                border-radius: 20px;
+                border: 1px solid #e9ecef;
+                font-size: 0.85rem;
+                min-width: 60px;
+                text-align: center;
+            }
+
+                .price-slider-labels span:first-child {
+                    color: #667eea;
+                }
+
+                .price-slider-labels span:last-child {
+                    color: #764ba2;
+                }
+
+        .price-slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            padding: 0 2px;
+        }
+
+            .price-slider-ticks span {
+                font-size: 0.6rem;
+                color: #adb5bd;
+            }
+
         .filter-actions {
             padding: 1.25rem 1.5rem;
         }
@@ -686,6 +876,94 @@
 
             form.submit();
         }
+
+                // ⭐ PRICE SLIDER - Sincronização entre slider e inputs
+        (function() {
+            const sliderMin = document.getElementById('priceSliderMin');
+            const sliderMax = document.getElementById('priceSliderMax');
+            const inputMin = document.getElementById('MinPrice');
+            const inputMax = document.getElementById('MaxPrice');
+            const displayMin = document.getElementById('sliderMinDisplay');
+            const displayMax = document.getElementById('sliderMaxDisplay');
+            const trackFill = document.getElementById('trackFill');
+            const minVal = 0;
+            const maxVal = 5000;
+
+            function updateTrack() {
+                const min = parseInt(sliderMin.value);
+                const max = parseInt(sliderMax.value);
+                const total = maxVal - minVal;
+
+                const minPercent = ((min - minVal) / total) * 100;
+                const maxPercent = ((max - minVal) / total) * 100;
+
+                if (trackFill) {
+                    trackFill.style.left = minPercent + '%';
+                    trackFill.style.width = (maxPercent - minPercent) + '%';
+                }
+            }
+
+            function updateDisplay() {
+                const min = parseInt(sliderMin.value);
+                const max = parseInt(sliderMax.value);
+                displayMin.textContent = min + '€';
+                displayMax.textContent = max + '€';
+                inputMin.value = min;
+                inputMax.value = max;
+                updateTrack();
+            }
+
+            function roundToStep(value) {
+                return Math.round(value / 10) * 10;
+            }
+
+            function initialize() {
+                let min = parseInt(sliderMin.value);
+                let max = parseInt(sliderMax.value);
+
+                min = roundToStep(min);
+                max = roundToStep(max);
+
+                if (min < 0) min = 0;
+                if (max > 5000) max = 5000;
+                if (min > max) min = max - 10;
+                if (min < 0) min = 0;
+
+                sliderMin.value = min;
+                sliderMax.value = max;
+                updateDisplay();
+            }
+
+            // ⭐ Event listeners para os sliders - APENAS ATUALIZA A UI, NÃO SUBMETE
+            sliderMin.addEventListener('input', function() {
+                let min = parseInt(this.value);
+                let max = parseInt(sliderMax.value);
+
+                if (min > max - 10) {
+                    min = max - 10;
+                    this.value = min;
+                }
+
+                updateDisplay();
+
+            });
+
+            sliderMax.addEventListener('input', function() {
+                let min = parseInt(sliderMin.value);
+                let max = parseInt(this.value);
+
+                if (max < min + 10) {
+                    max = min + 10;
+                    this.value = max;
+                }
+
+                updateDisplay();
+            });
+
+            // Inicializar
+            initialize();
+        })();
+
 
         // Event listener para o botão de pesquisa
         document.getElementById('searchButton')?.addEventListener('click', function() {
