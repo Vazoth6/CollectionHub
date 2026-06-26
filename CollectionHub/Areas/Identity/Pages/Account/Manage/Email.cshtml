@@ -1,0 +1,189 @@
+﻿@page
+@model EmailModel
+@{
+    ViewData["Title"] = "Gerir Email";
+    ViewData["ActivePage"] = ManageNavPages.Email;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 mb-4">
+                <i class="bi bi-envelope text-primary"></i> Gerir Email
+            </h1>
+            <p class="text-muted">Altere o seu endereço de email e verifique a sua conta.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <partial name="_StatusMessage" for="StatusMessage" />
+
+                    <form id="email-form" method="post">
+                        <!-- Email atual -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                Email Atual
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="Email" class="form-control" disabled />
+                                @if (Model.IsEmailConfirmed)
+                                {
+                                    <span class="input-group-text bg-success text-white border-success">
+                                        Confirmado
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="input-group-text bg-warning text-dark border-warning">
+                                        Não confirmado
+                                    </span>
+                                }
+                            </div>
+                            @if (!Model.IsEmailConfirmed)
+                            {
+                                <div class="mt-2">
+                                    <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail"
+                                            class="btn btn-outline-warning btn-sm">
+                                        Reenviar email de verificação
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Novo email -->
+                        <div class="mb-3">
+                            <label asp-for="Input.NewEmail" class="form-label fw-bold">
+                                Novo Email
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="Input.NewEmail" class="form-control"
+                                       autocomplete="email" aria-required="true"
+                                       placeholder="Digite o novo email" />
+                            </div>
+                            <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
+                        </div>
+
+                        <!-- Confirmar email -->
+                        <div class="mb-3">
+                            <label asp-for="Input.ConfirmEmail" class="form-label fw-bold">
+                                Confirmar Novo Email
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="Input.ConfirmEmail" class="form-control"
+                                       autocomplete="email" aria-required="true"
+                                       placeholder="Confirme o novo email" />
+                            </div>
+                            <span asp-validation-for="Input.ConfirmEmail" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-page="./Index" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> Alterar Email
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Informação sobre o Email -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-body">
+                    <h6 class="fw-bold"><i class="bi bi-info-circle text-primary"></i> Informação</h6>
+                    <ul class="small text-muted ps-3 mb-0">
+                        <li>Após alterar o email, será necessário confirmar o novo endereço.</li>
+                        <li>Se não receber o email de verificação, verifique a pasta de spam.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .input-group-text {
+            background: #f8f9fa;
+            min-width: 42px;
+            justify-content: center;
+        }
+
+            .input-group-text.bg-success {
+                background: #28a745 !important;
+                color: white;
+                border-color: #28a745 !important;
+            }
+
+            .input-group-text.bg-warning {
+                background: #ffc107 !important;
+                color: #212529;
+                border-color: #ffc107 !important;
+            }
+
+        .input-group .form-control:disabled {
+            background-color: #f8f9fa;
+            opacity: 0.8;
+        }
+
+        .btn-outline-warning {
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+            .btn-outline-warning:hover {
+                background: #ffc107;
+                color: #212529;
+            }
+
+        .card {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .card-body {
+            padding: 1.75rem;
+        }
+
+        hr {
+            opacity: 0.15;
+            margin: 1.5rem 0;
+        }
+    </style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ⭐ VALIDAÇÃO EM TEMPO REAL PARA CONFIRMAR EMAIL
+        document.addEventListener('DOMContentLoaded', function() {
+            const newEmail = document.getElementById('Input_NewEmail');
+            const confirmEmail = document.getElementById('Input_ConfirmEmail');
+
+            if (newEmail && confirmEmail) {
+                confirmEmail.addEventListener('input', function() {
+                    if (this.value && newEmail.value !== this.value) {
+                        this.classList.add('is-invalid');
+                        let errorMsg = this.parentElement.parentElement.querySelector('.text-danger');
+                        if (!errorMsg) {
+                            errorMsg = document.createElement('span');
+                            errorMsg.className = 'text-danger';
+                            errorMsg.textContent = 'Os emails não coincidem.';
+                            this.parentElement.parentElement.appendChild(errorMsg);
+                        }
+                    } else {
+                        this.classList.remove('is-invalid');
+                        const errorMsg = this.parentElement.parentElement.querySelector('.text-danger');
+                        if (errorMsg && errorMsg.textContent.includes('não coincidem')) {
+                            errorMsg.remove();
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,137 @@
+﻿@page
+@model PersonalDataModel
+@{
+    ViewData["Title"] = "Dados Pessoais";
+    ViewData["ActivePage"] = ManageNavPages.PersonalData;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-database"></i> @ViewData["Title"]
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Informação:</strong> Esta página contém todos os dados pessoais que armazenamos sobre si.
+                        Pode descarregar uma cópia ou solicitar a eliminação permanente da sua conta e de todos os dados associados.
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-download display-3 text-primary"></i>
+                                    <h5 class="mt-3">Descarregar Dados</h5>
+                                    <p class="text-muted small">
+                                        Obtenha uma cópia de todos os seus dados pessoais em formato JSON.
+                                    </p>
+                                    <form id="download-data" asp-page="DownloadPersonalData" method="post">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="bi bi-download"></i> Descarregar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 bg-danger bg-opacity-10">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-trash display-3 text-danger"></i>
+                                    <h5 class="mt-3 text-danger">Eliminar Conta</h5>
+                                    <p class="text-muted small">
+                                        Esta ação é <strong>permanente</strong> e irá eliminar todos os seus dados da plataforma.
+                                    </p>
+                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                        <i class="bi bi-trash"></i> Eliminar Conta
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="small text-muted">
+                        <i class="bi bi-shield-check text-success"></i>
+                        Os seus dados estão protegidos e são tratados com a máxima segurança.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ⭐ MODAL DE CONFIRMAÇÃO DE ELIMINAÇÃO -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Eliminação
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="delete-user" method="post">
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-trash display-1 text-danger"></i>
+                    </div>
+                    <p>
+                        Tem a certeza que deseja <strong>eliminar permanentemente</strong> a sua conta?
+                    </p>
+                    <ul class="text-muted small">
+                        <li>Todos os seus dados pessoais serão eliminados</li>
+                        <li>Os itens que colocou à venda serão removidos</li>
+                        <li>O seu histórico de transações será removido</li>
+                        <li>Esta ação <strong>NÃO</strong> pode ser desfeita</li>
+                    </ul>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> A eliminação da conta é irreversível. Todos os dados serão permanentemente removidos.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-check-circle"></i> Confirme a eliminação digitando "ELIMINAR"
+                        </label>
+                        <input type="text" class="form-control" id="confirmDelete"
+                               placeholder="Digite ELIMINAR para confirmar" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger" id="deleteConfirmBtn" disabled>
+                        <i class="bi bi-trash"></i> Confirmar Eliminação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ⭐ ATIVAR/DESATIVAR BOTÃO DE CONFIRMAÇÃO
+        document.getElementById('confirmDelete').addEventListener('input', function() {
+            const btn = document.getElementById('deleteConfirmBtn');
+            btn.disabled = this.value !== 'ELIMINAR';
+        });
+
+        // ⭐ SUBMETER FORMULÁRIO DE ELIMINAÇÃO
+        document.getElementById('deleteConfirmBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const confirmInput = document.getElementById('confirmDelete');
+            if (confirmInput.value === 'ELIMINAR') {
+                if (confirm('Tem a certeza absoluta que deseja eliminar a sua conta? Esta ação é irreversível.')) {
+                    document.getElementById('delete-user').submit();
+                }
+            }
+        });
+    </script>
+}
