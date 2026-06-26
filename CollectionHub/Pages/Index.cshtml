@@ -4,7 +4,7 @@
     ViewData["Title"] = "Início";
 
     var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
-    var canSell = isAuthenticated && (User.IsInRole("Vendedor") || User.IsInRole("Admin"));
+    var canSell = isAuthenticated && (User.IsInRole("Utilizador") || User.IsInRole("Admin"));
 }
 
 <section class="home-hero">

@@ -8,7 +8,7 @@ using CollectionHub.Data.Model.DTOs;
 
 namespace CollectionHub.Pages.Shop
 {
-    [Authorize(Roles = "Vendedor,Admin")]
+    [Authorize]
     public class CreateModel : PageModel
     {
         private readonly IHttpClientFactory _httpClientFactory;

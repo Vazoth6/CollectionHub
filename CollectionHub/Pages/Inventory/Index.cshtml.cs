@@ -26,10 +26,27 @@ namespace CollectionHub.Pages.Inventory
         public List<InventoryItemDto> ItemsPurchased { get; set; } = new();
         public List<InventoryItemDto> ItemsForSale { get; set; } = new();
         public List<InventoryTransactionDto> Transactions { get; set; } = new();
+        public int CompletedSalesCount { get; set; }
 
         public async Task OnGetAsync()
         {
-            await LoadPageAsync();
+            ReturnUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
+
+            var userId = await GetCurrentMyUserId();
+            if (userId == 0) return;
+
+            var user = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == userId);
+            WalletBalance = user?.WalletBalance ?? 0;
+
+            ActiveProfile = HttpContext.Session.GetString("ActiveProfile") ?? "Comprador";
+
+            if (ActiveProfile != "Comprador" && ActiveProfile != "Vendedor")
+            {
+                ActiveProfile = "Comprador";
+                HttpContext.Session.SetString("ActiveProfile", ActiveProfile);
+            }
+
+            await LoadUserData(userId);
         }
 
         public async Task<IActionResult> OnPostSellItemAsync(int itemId, decimal salePrice)
@@ -70,43 +87,12 @@ namespace CollectionHub.Pages.Inventory
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Item colocado à venda com sucesso.";
-            HttpContext.Session.SetString("ActiveProfile", "Vendedor");
             return RedirectToPage();
         }
 
-        private async Task LoadPageAsync()
+        private async Task LoadUserData(int userId)
         {
-            ReturnUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
-
-            var userId = await GetCurrentMyUserId();
-            if (userId == 0)
-            {
-                return;
-            }
-
-            var user = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == userId);
-            WalletBalance = user?.WalletBalance ?? 0;
-
-            ActiveProfile = HttpContext.Session.GetString("ActiveProfile") ?? "Comprador";
-
-            if (ActiveProfile != "Comprador" && ActiveProfile != "Vendedor")
-            {
-                ActiveProfile = "Comprador";
-                HttpContext.Session.SetString("ActiveProfile", ActiveProfile);
-            }
-
-            if (IsBuyerProfile)
-            {
-                await LoadBuyerProfile(userId);
-            }
-            else
-            {
-                await LoadSellerProfile(userId);
-            }
-        }
-
-        private async Task LoadBuyerProfile(int userId)
-        {
+            // ⭐ ITENS NA COLEÇÃO (comprados e não disponíveis para venda)
             ItemsPurchased = await _context.UserItems
                 .Include(ui => ui.Item)
                 .ThenInclude(i => i!.Category)
@@ -133,7 +119,28 @@ namespace CollectionHub.Pages.Inventory
                 })
                 .ToListAsync();
 
-            Transactions = await _context.Transactions
+            // ⭐ ITENS À VENDA
+            ItemsForSale = await _context.UserItems
+                .Include(ui => ui.Item)
+                .Where(ui => ui.UserId == userId && ui.Item != null && ui.Item.Status == "Disponível")
+                .Select(ui => new InventoryItemDto
+                {
+                    Id = ui.Item!.Id,
+                    Name = ui.Item.Name,
+                    Description = ui.Item.Description,
+                    Price = ui.Item.Price,
+                    ImageUrl = ui.Item.ImageUrl,
+                    Status = ui.Item.Status,
+                    SubmittedAt = ui.Item.SubmittedAt
+                })
+                .ToListAsync();
+
+            // ⭐ VENDAS REALIZADAS (transações concluídas como vendedor)
+            CompletedSalesCount = await _context.Transactions
+                .CountAsync(t => t.SellerId == userId && t.IsPaid);
+
+            // ⭐ TRANSAÇÕES (Compras + Vendas)
+            var purchases = await _context.Transactions
                 .Include(t => t.Item)
                 .Include(t => t.Seller)
                 .Where(t => t.BuyerId == userId)
@@ -150,26 +157,8 @@ namespace CollectionHub.Pages.Inventory
                     TransactionType = "Compra"
                 })
                 .ToListAsync();
-        }
 
-        private async Task LoadSellerProfile(int userId)
-        {
-            ItemsForSale = await _context.UserItems
-                .Include(ui => ui.Item)
-                .Where(ui => ui.UserId == userId && ui.Item != null && ui.Item.Status == "Disponível")
-                .Select(ui => new InventoryItemDto
-                {
-                    Id = ui.Item!.Id,
-                    Name = ui.Item.Name,
-                    Description = ui.Item.Description,
-                    Price = ui.Item.Price,
-                    ImageUrl = ui.Item.ImageUrl,
-                    Status = ui.Item.Status,
-                    SubmittedAt = ui.Item.SubmittedAt
-                })
-                .ToListAsync();
-
-            Transactions = await _context.Transactions
+            var sales = await _context.Transactions
                 .Include(t => t.Item)
                 .Include(t => t.Buyer)
                 .Where(t => t.SellerId == userId)
@@ -186,6 +175,10 @@ namespace CollectionHub.Pages.Inventory
                     TransactionType = "Venda"
                 })
                 .ToListAsync();
+
+            Transactions = purchases.Concat(sales)
+                .OrderByDescending(t => t.Date)
+                .ToList();
         }
 
         private async Task<int> GetCurrentMyUserId()

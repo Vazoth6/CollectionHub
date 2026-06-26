@@ -17,7 +17,8 @@
         <div class="container">
             <h1 class="display-4 fw-bold text-white mb-3">Loja</h1>
             <p class="lead text-white-50 mb-4">Descubra videojogos, cartas, moedas e muito mais de vendedores verificados</p>
-            @if (User.Identity.IsAuthenticated && (User.IsInRole("Vendedor") || User.IsInRole("Admin")))
+            @* ⭐ ALTERAR: Qualquer utilizador autenticado pode vender *@
+            @if (User.Identity.IsAuthenticated)
             {
                 <a asp-page="Create" class="btn btn-light btn-lg px-5">
                     <i class="bi bi-plus-circle"></i> Vender Coleccionável
