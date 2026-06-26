@@ -29,11 +29,7 @@
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1 gap-1">
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-custom" asp-area="" asp-page="/Index">
-                                <i class="bi bi-house"></i> Início
-                            </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link nav-link-custom" asp-area="" asp-page="/Shop/Index">
                                 <i class="bi bi-shop"></i> Loja
@@ -74,7 +70,16 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - CollectionHub - <a asp-area="" asp-page="/Privacy">Privacidade</a>
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    &copy; 2026 - CollectionHub - <a asp-area="" asp-page="/Privacy">Privacidade</a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a asp-page="/About" class="text-decoration-none text-muted">
+                        <i class="bi bi-info-circle"></i> Sobre
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
 

@@ -1,0 +1,187 @@
+﻿@page
+@model AboutModel
+@{
+    ViewData["Title"] = "Sobre - CollectionHub";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-4 mb-4">
+                <i class="bi bi-info-circle text-primary"></i> Sobre o Projeto
+            </h1>
+            <hr />
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Informações Académicas -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-mortarboard"></i> Informações Académicas</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Curso</dt>
+                        <dd class="col-sm-8">Licenciatura em Engenharia Informática</dd>
+
+                        <dt class="col-sm-4">Disciplina</dt>
+                        <dd class="col-sm-8">Desenvolvimento Web</dd>
+
+                        <dt class="col-sm-4">Ano Letivo</dt>
+                        <dd class="col-sm-8">2025/2026</dd>
+
+                        <dt class="col-sm-4">Semestre</dt>
+                        <dd class="col-sm-8">2º Semestre</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Autores -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Autores</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-person fs-3 text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Rodrigo Miguel Oliveira Calisto</h6>
+                            <small class="text-muted">Nº 24851</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-person fs-3 text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Bruno Alves</h6>
+                            <small class="text-muted">Nº 24706</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Funcionalidades -->
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Funcionalidades Implementadas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Autenticação e registo de utilizadores</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Marketplace de itens (CRUD)</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Sistema de categorias</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Carteira virtual</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Sistema de compras com saldo</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Inventário do utilizador</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Painel de Administrador</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success"></i> Histórico de transações</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Credenciais (apenas visíveis para Admin) -->
+        @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+        {
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Credenciais de Acesso (Admin)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Utilizador</th>
+                                        <th>Email</th>
+                                        <th>Password</th>
+                                        <th>Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Administrador</td>
+                                        <td>admin@collectionhub.com</td>
+                                        <td><code>Admin123!</code></td>
+                                        <td><span class="badge bg-danger">Admin</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vendedor</td>
+                                        <td>vendedor@collectionhub.com</td>
+                                        <td><code>Vendedor123!</code></td>
+                                        <td><span class="badge bg-success">Vendedor</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Utilizador</td>
+                                        <td>utilizador@collectionhub.com</td>
+                                        <td><code>User123!</code></td>
+                                        <td><span class="badge bg-secondary">Utilizador</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <small class="text-muted">* Estas credenciais são para fins de teste do projeto.</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .tech-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
+        }
+
+            .tech-item:hover {
+                background: #e9ecef;
+                transform: translateY(-2px);
+            }
+
+            .tech-item i {
+                font-size: 1.8rem;
+                margin-top: 2px;
+                min-width: 32px;
+            }
+
+        .text-purple {
+            color: #6f42c1;
+        }
+
+        .list-unstyled li {
+            padding: 4px 0;
+        }
+
+        code {
+            background: #f1f3f5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+}
