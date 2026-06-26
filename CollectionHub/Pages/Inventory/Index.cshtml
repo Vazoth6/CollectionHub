@@ -19,14 +19,53 @@
                 </p>
             </div>
 
-            <form method="post" asp-page="/Profile/Switch" class="d-flex align-items-center gap-2">
-                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
-                <label class="fw-semibold" for="profile">Trocar perfil:</label>
-                <select id="profile" name="profile" class="form-select" onchange="this.form.submit()">
-                    <option value="Comprador" selected="@Model.IsBuyerProfile">Comprador</option>
-                    <option value="Vendedor" selected="@Model.IsSellerProfile">Vendedor</option>
-                </select>
-            </form>
+<div class="d-flex align-items-center gap-2">
+
+    @if (Model.IsBuyerProfile)
+    {
+        <form method="post" asp-page="/Profile/Switch">
+            <input type="hidden" name="profile" value="Vendedor" />
+            <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat"></i>
+                Mudar para Vendedor
+            </button>
+        </form>
+    }
+    else
+    {
+                    <div class="d-flex align-items-center gap-2">
+
+                        @if (Model.IsBuyerProfile)
+                        {
+                            <form method="post" asp-page="/Profile/Switch">
+                                <input type="hidden" name="profile" value="Vendedor" />
+                                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    Mudar para Vendedor
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form method="post" asp-page="/Profile/Switch">
+                                <input type="hidden" name="profile" value="Comprador" />
+                                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    Mudar para Comprador
+                                </button>
+                            </form>
+                        }
+
+                    </div>
+    }
+
+</div>
 
             <hr class="w-100" />
         </div>
@@ -178,10 +217,7 @@
     }
     else
     {
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="mb-0"><i class="bi bi-tag"></i> As minhas vendas</h3>
-            <a href="/Shop/Create" class="btn btn-primary">Criar novo item para venda</a>
-        </div>
+
 
         @if (!Model.ItemsForSale.Any())
         {
