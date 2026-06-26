@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
@@ -76,7 +76,13 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
                 if (user == null)
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, "Tentativa de login inválida.");
+                    return Page();
+                }
+
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    ModelState.AddModelError(string.Empty, "Confirme o seu email antes de iniciar sessão. Verifique a sua caixa de entrada ou reenvie a confirmação.");
                     return Page();
                 }
 
@@ -104,7 +110,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
                     return RedirectToPage("./Lockout");
                 }
 
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                ModelState.AddModelError(string.Empty, "Tentativa de login inválida.");
             }
 
             return Page();

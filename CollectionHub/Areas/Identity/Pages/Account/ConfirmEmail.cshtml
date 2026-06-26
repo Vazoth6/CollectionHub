@@ -1,8 +1,15 @@
-﻿@page
+@page
 @model ConfirmEmailModel
 @{
-    ViewData["Title"] = "Confirm email";
+    ViewData["Title"] = "Email confirmado";
 }
 
-<h1>@ViewData["Title"]</h1>
-<partial name="_StatusMessage" model="Model.StatusMessage" />
+<div class="auth-page py-5">
+    <div class="auth-card mx-auto text-center">
+        <div class="auth-icon mx-auto mb-3"><i class="bi bi-check2-circle"></i></div>
+        <h1 class="h3 mb-2">Email confirmado</h1>
+        <partial name="_StatusMessage" model="Model.StatusMessage" />
+        <p class="text-muted">A sua conta já pode iniciar sessão no CollectionHub.</p>
+        <a class="btn auth-btn-primary w-100" asp-page="./Login">Entrar</a>
+    </div>
+</div>

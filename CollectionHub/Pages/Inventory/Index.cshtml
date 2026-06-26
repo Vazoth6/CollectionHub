@@ -1,4 +1,4 @@
-﻿@page "/Inventory"
+@page "/Inventory"
 @model CollectionHub.Pages.Inventory.IndexModel
 @{
     ViewData["Title"] = Model.IsBuyerProfile ? "Perfil de Comprador" : "Perfil de Vendedor";
@@ -175,18 +175,15 @@
                                         </div>
                                     }
 
-                                    <!-- ⭐ BOTÃO PARA COLOCAR À VENDA -->
-                                    <form method="post" asp-page-handler="SellItem" class="mt-auto">
-                                        <input type="hidden" name="itemId" value="@item.Id" />
-                                        <label class="form-label small fw-semibold">Preço para venda</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">€</span>
-                                            <input type="number" name="salePrice" class="form-control" min="0.01" step="0.01" value="@item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="bi bi-tag"></i> Vender
-                                            </button>
-                                        </div>
-                                    </form>
+                                    <button type="button"
+                                            class="btn btn-primary mt-auto sell-from-collection"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#sellItemModal"
+                                            data-item-id="@item.Id"
+                                            data-item-name="@item.Name"
+                                            data-item-price="@item.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                        <i class="bi bi-tag"></i> Colocar à venda
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -301,6 +298,31 @@
     </div>
 </div>
 
+<div class="modal fade" id="sellItemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content hub-card border-0">
+            <div class="hub-card-header">
+                <h5 class="modal-title mb-0"><i class="bi bi-tag"></i> Vender item da coleção</h5>
+            </div>
+            <form method="post" asp-page-handler="SellItem">
+                <div class="modal-body">
+                    <input type="hidden" name="itemId" id="sellItemId" />
+                    <p class="text-muted mb-3">Defina o preço de venda para <strong id="sellItemName"></strong>.</p>
+                    <label class="form-label fw-semibold" for="sellItemPrice">Preço de venda</label>
+                    <div class="input-group">
+                        <span class="input-group-text">€</span>
+                        <input type="number" name="salePrice" id="sellItemPrice" class="form-control" min="0.01" step="0.01" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Publicar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Styles {
     <style>
         .item-image {
@@ -342,6 +364,19 @@
             font-size: 0.7rem;
         }
     </style>
+}
+
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.sell-from-collection').forEach(button => {
+            button.addEventListener('click', () => {
+                document.getElementById('sellItemId').value = button.dataset.itemId;
+                document.getElementById('sellItemName').textContent = button.dataset.itemName;
+                document.getElementById('sellItemPrice').value = button.dataset.itemPrice;
+            });
+        });
+    </script>
 }
 
 @functions {
