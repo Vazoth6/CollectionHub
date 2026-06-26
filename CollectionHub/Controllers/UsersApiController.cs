@@ -217,44 +217,101 @@ namespace CollectionHub.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int userId)
         {
-            var myUser = await _context.MyUsers
-                .Include(u => u.UserItems)
-                .Include(u => u.Sales)
-                .Include(u => u.Purchases)
-                .FirstOrDefaultAsync(m => m.Id == userId);
-
-            if (myUser == null)
+            try
             {
-                return NotFound(new { message = $"Utilizador com ID {userId} não encontrado." });
-            }
+                // ⭐ 1. OBTER O MyUser COM TODAS AS RELAÇÕES
+                var myUser = await _context.MyUsers
+                    .Include(u => u.UserItems)
+                    .Include(u => u.Sales)
+                    .Include(u => u.Purchases)
+                    .FirstOrDefaultAsync(m => m.Id == userId);
 
-            // Verificar se o utilizador tem transações ativas
-            if (myUser.Sales.Any(s => s.Status != "Entregue" && s.Status != "Cancelada") ||
-                myUser.Purchases.Any(p => p.Status != "Entregue" && p.Status != "Cancelada"))
+                if (myUser == null)
+                {
+                    return NotFound(new { message = $"Utilizador com ID {userId} não encontrado." });
+                }
+
+                // ⭐ 2. OBTER O IdentityUser ASSOCIADO
+                var identityUser = await _userManager.FindByIdAsync(myUser.UserID);
+                if (identityUser == null)
+                {
+                    // Se o IdentityUser já não existir, apenas elimina o MyUser
+                    _context.MyUsers.Remove(myUser);
+                    await _context.SaveChangesAsync();
+                    return Ok(new { message = $"Utilizador {myUser.Name} eliminado com sucesso (apenas MyUser)." });
+                }
+
+                // ⭐ 3. VERIFICAR SE O UTILIZADOR TEM TRANSAÇÕES ATIVAS
+                var hasActiveTransactions = myUser.Sales.Any(s => s.Status != "Entregue" && s.Status != "Cancelada") ||
+                                            myUser.Purchases.Any(p => p.Status != "Entregue" && p.Status != "Cancelada");
+
+                if (hasActiveTransactions)
+                {
+                    return BadRequest(new { message = "Não é possível eliminar um utilizador com transações pendentes." });
+                }
+
+                // ⭐ 4. REMOVER DEPENDÊNCIAS EM ORDEM CORRETA
+
+                // 4.1 - Remover UserItems
+                if (myUser.UserItems.Any())
+                {
+                    _context.UserItems.RemoveRange(myUser.UserItems);
+                }
+
+                // 4.2 - Remover Transações (Sales e Purchases)
+                if (myUser.Sales.Any())
+                {
+                    // Marcar os itens como disponíveis antes de remover as transações
+                    foreach (var sale in myUser.Sales)
+                    {
+                        if (sale.Item != null && sale.Status != "Concluída")
+                        {
+                            sale.Item.Status = "Disponível";
+                        }
+                    }
+                    _context.Transactions.RemoveRange(myUser.Sales);
+                }
+
+                if (myUser.Purchases.Any())
+                {
+                    _context.Transactions.RemoveRange(myUser.Purchases);
+                }
+
+                // 4.3 - Remover Likes (se existir a tabela ItemLikes)
+                var userLikes = _context.ItemLikes.Where(l => l.UserId == userId);
+                if (userLikes.Any())
+                {
+                    _context.ItemLikes.RemoveRange(userLikes);
+                }
+
+                // 4.4 - Remover MyUser
+                _context.MyUsers.Remove(myUser);
+
+                // ⭐ 5. GUARDAR ALTERAÇÕES ANTES DE ELIMINAR O IDENTITY USER
+                await _context.SaveChangesAsync();
+
+                // ⭐ 6. ELIMINAR O IDENTITY USER
+                var result = await _userManager.DeleteAsync(identityUser);
+
+                if (result.Succeeded)
+                {
+                    return Ok(new { message = $"Utilizador {myUser.Name} eliminado com sucesso da plataforma." });
+                }
+                else
+                {
+                    // Se falhar ao eliminar o IdentityUser, mas o MyUser já foi removido
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return StatusCode(500, new
+                    {
+                        message = $"MyUser eliminado, mas ocorreu um erro ao eliminar a conta de autenticação: {errors}",
+                        partialSuccess = true
+                    });
+                }
+            }
+            catch (Exception ex)
             {
-                return BadRequest(new { message = "Não é possível eliminar um utilizador com transações pendentes." });
+                return StatusCode(500, new { message = $"Erro ao eliminar utilizador: {ex.Message}" });
             }
-
-            // Eliminar associações UserItem
-            _context.UserItems.RemoveRange(myUser.UserItems);
-
-            // Eliminar transações (já verificadas)
-            _context.Transactions.RemoveRange(myUser.Sales);
-            _context.Transactions.RemoveRange(myUser.Purchases);
-
-            // Eliminar MyUser
-            _context.MyUsers.Remove(myUser);
-
-            // Eliminar IdentityUser
-            var identityUser = await _userManager.FindByIdAsync(myUser.UserID);
-            if (identityUser != null)
-            {
-                await _userManager.DeleteAsync(identityUser);
-            }
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = $"Utilizador {myUser.Name} eliminado com sucesso." });
         }
 
         /// <summary>

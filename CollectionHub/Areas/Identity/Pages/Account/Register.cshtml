@@ -1,137 +1,143 @@
 @page
 @model RegisterModel
-
 @{
-    ViewData["Title"] = "Registo";
+    ViewData["Title"] = "Registar";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center align-items-center">
-        <div class="col-lg-6 col-md-8">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4 p-md-5">
+<div class="auth-page py-5">
+    <div class="auth-card mx-auto">
+        <div class="auth-icon mx-auto mb-3"><i class="bi bi-person-plus"></i></div>
+        <h1 class="h3 text-center mb-2">Criar conta</h1>
+        <p class="text-muted text-center mb-4">Preencha os dados para começar a usar a CollectionHub.</p>
 
-                    <div class="text-center mb-4">
-                        <h1 class="h3 fw-bold">@ViewData["Title"]</h1>
-                        <p class="text-muted mb-0">
-                            Crie a sua conta para começar
-                        </p>
-                    </div>
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
-                    <form id="registerForm"
-                          asp-route-returnUrl="@Model.ReturnUrl"
-                          method="post">
-
-                        <div asp-validation-summary="ModelOnly"
-                             class="text-danger mb-3"
-                             role="alert"></div>
-
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.Name"
-                                   class="form-control rounded-3"
-                                   autocomplete="name"
-                                   aria-required="true"
-                                   placeholder="Nome" />
-                            <label asp-for="Input.Name">Nome</label>
-                            <span asp-validation-for="Input.Name" class="text-danger small"></span>
-                        </div>
-
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.UserName"
-                                   class="form-control rounded-3"
-                                   autocomplete="username"
-                                   aria-required="true"
-                                   placeholder="Nome de utilizador" />
-                            <label asp-for="Input.UserName">Nome de utilizador</label>
-                            <span asp-validation-for="Input.UserName" class="text-danger small"></span>
-                        </div>
-
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.Email"
-                                   class="form-control rounded-3"
-                                   autocomplete="email"
-                                   aria-required="true"
-                                   placeholder="nome@exemplo.com" />
-                            <label asp-for="Input.Email">Email</label>
-                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
-                        </div>
-
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.CellPhone"
-                                   class="form-control rounded-3"
-                                   autocomplete="tel"
-                                   placeholder="Telemóvel" />
-                            <label asp-for="Input.CellPhone">Telemóvel</label>
-                            <span asp-validation-for="Input.CellPhone" class="text-danger small"></span>
-                        </div>
-
-                        <div class="form-floating mb-3">
-                            <input asp-for="Input.Password"
-                                   class="form-control rounded-3"
-                                   autocomplete="new-password"
-                                   aria-required="true"
-                                   placeholder="Senha" />
-                            <label asp-for="Input.Password">Senha</label>
-                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
-                        </div>
-
-                        <div class="form-floating mb-4">
-                            <input asp-for="Input.ConfirmPassword"
-                                   class="form-control rounded-3"
-                                   autocomplete="new-password"
-                                   aria-required="true"
-                                   placeholder="Confirmar senha" />
-                            <label asp-for="Input.ConfirmPassword">Confirmar senha</label>
-                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
-                        </div>
-
-                        <button id="registerSubmit"
-                                type="submit"
-                                class="w-100 btn btn-primary btn-lg rounded-3">
-                            Registar
-                        </button>
-                    </form>
-
-                    <hr class="my-4" />
-
-                    <div class="text-center">
-                        <h2 class="h6 text-muted mb-3">
-                            Ou registe-se com outro serviço
-                        </h2>
-
-                        @if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                        {
-                            <p class="text-muted small mb-0">
-                                Não existem serviços externos de autenticação configurados.
-                            </p>
-                        }
-                        else
-                        {
-                            <form id="external-account"
-                                  asp-page="./ExternalLogin"
-                                  asp-route-returnUrl="@Model.ReturnUrl"
-                                  method="post">
-
-                                <div class="d-grid gap-2">
-                                    @foreach (var provider in Model.ExternalLogins!)
-                                    {
-                                        <button type="submit"
-                                                class="btn btn-outline-primary rounded-3"
-                                                name="provider"
-                                                value="@provider.Name">
-                                            Continuar com @provider.DisplayName
-                                        </button>
-                                    }
-                                </div>
-                            </form>
-                        }
-                    </div>
-
-                </div>
+            <!-- ⭐ NOME COMPLETO -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Name" class="form-control" autocomplete="name" aria-required="true" placeholder="João Silva" />
+                <label asp-for="Input.Name">Nome Completo</label>
+                <span asp-validation-for="Input.Name" class="text-danger small"></span>
             </div>
-        </div>
+
+            <!-- ⭐ EMAIL -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="nome@exemplo.com" />
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            </div>
+
+            <!-- ⭐ TELEMÓVEL (opcional) -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.CellPhone" class="form-control" autocomplete="tel" placeholder="912345678" />
+                <label asp-for="Input.CellPhone">Telemóvel (opcional)</label>
+                <span asp-validation-for="Input.CellPhone" class="text-danger small"></span>
+                <small class="text-muted">Exemplo: 912345678 ou +351912345678</small>
+            </div>
+
+            <!-- ⭐ PASSWORD -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.Password">Password</label>
+                <span asp-validation-for="Input.Password" class="text-danger small"></span>
+            </div>
+
+            <!-- ⭐ CONFIRMAR PASSWORD -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label asp-for="Input.ConfirmPassword">Confirmar Password</label>
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+            </div>
+
+            <button id="registerSubmit" type="submit" class="btn auth-btn-primary w-100">
+                <i class="bi bi-check-lg"></i> Criar Conta
+            </button>
+        </form>
+
+        <hr class="my-4" />
+        <p class="text-center small text-muted">
+            Já tem conta? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Iniciar sessão</a>
+        </p>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .auth-page {
+            min-height: calc(100vh - 200px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+        }
+
+        .auth-card {
+            max-width: 440px;
+            width: 100%;
+            padding: 2.5rem 2rem;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(17, 24, 39, 0.12);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .auth-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(118, 75, 162, 0.12));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: #667eea;
+        }
+
+        .auth-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+            .auth-btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.35);
+                color: white;
+            }
+
+        .form-floating > .form-control {
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+            .form-floating > .form-control:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+        .form-floating > label {
+            color: #6c757d;
+        }
+
+        .form-floating > .form-control:focus + label {
+            color: #667eea;
+        }
+
+        .text-muted small {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.75rem;
+        }
+
+        hr {
+            opacity: 0.15;
+        }
+    </style>
+}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

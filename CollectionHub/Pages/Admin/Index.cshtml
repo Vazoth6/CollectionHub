@@ -159,4 +159,70 @@
             </div>
         </div>
     </div>
+
+    <!-- Confirmação de emails -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-envelope-check text-warning"></i>
+                        Confirmações de Email Pendentes
+                    </h5>
+                    <span class="badge bg-warning text-dark">@Model.PendingEmailConfirmations.Count</span>
+                </div>
+                <div class="card-body">
+                    @if (Model.PendingEmailConfirmations.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Utilizador</th>
+                                        <th>Email</th>
+                                        <th>Data de Registo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in Model.PendingEmailConfirmations)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="bi bi-person-circle text-primary"></i>
+                                                    <span>@user.Name</span>
+                                                </div>
+                                            </td>
+                                            <td>@user.Email</td>
+                                            <td>@user.RegisterDate.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                <form method="post" asp-page-handler="ConfirmEmail" class="d-inline">
+                                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="bi bi-check-circle"></i> Confirmar
+                                                    </button>
+                                                </form>
+                                                <button class="btn btn-outline-danger btn-sm" onclick="resendConfirmation('@user.UserId', '@user.Email')">
+                                                    <i class="bi bi-envelope"></i> Reenviar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle text-success fs-1"></i>
+                            <p class="mt-2 text-muted">Não há confirmações de email pendentes.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>

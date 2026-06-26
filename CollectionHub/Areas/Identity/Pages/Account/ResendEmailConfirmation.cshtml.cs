@@ -1,5 +1,3 @@
-#nullable disable
-
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -27,43 +25,58 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; }
 
+        // ⭐ ADICIONAR A PROPRIEDADE StatusMessage
         [TempData]
         public string StatusMessage { get; set; }
 
         public class InputModel
         {
-            [Required(ErrorMessage = "O email é obrigatório.")]
-            [EmailAddress(ErrorMessage = "Email inválido.")]
-            [Display(Name = "Email")]
+            [Required(ErrorMessage = "O email é obrigatório")]
+            [EmailAddress(ErrorMessage = "Email inválido")]
             public string Email { get; set; }
         }
 
-        public void OnGet() { }
+        public void OnGet()
+        {
+        }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid) return Page();
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
 
             var user = await _userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
-                StatusMessage = "Se existir uma conta com esse email, será enviado um novo link de confirmação.";
-                return RedirectToPage();
+                ModelState.AddModelError(string.Empty, "Email não encontrado.");
+                return Page();
+            }
+
+            // Verificar se o email já está confirmado
+            if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                StatusMessage = "Este email já foi confirmado.";
+                return Page();
             }
 
             var userId = await _userManager.GetUserIdAsync(user);
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page("/Account/ConfirmEmail", null,
-                new { area = "Identity", userId, code }, Request.Scheme);
+            var callbackUrl = Url.Page(
+                "/Account/ConfirmEmail",
+                pageHandler: null,
+                values: new { area = "Identity", userId = userId, code = code },
+                protocol: Request.Scheme);
 
             await _emailSender.SendEmailAsync(
                 Input.Email,
-                "Confirmar email - CollectionHub",
-                $"Confirme a sua conta clicando <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>aqui</a>.");
+                "Confirme o seu email",
+                $"Por favor, confirme a sua conta <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicando aqui</a>.");
 
-            StatusMessage = "Se existir uma conta com esse email, será enviado um novo link de confirmação.";
-            return RedirectToPage();
+            StatusMessage = "Link de confirmação enviado. Verifique o seu email.";
+            return Page();
         }
     }
 }

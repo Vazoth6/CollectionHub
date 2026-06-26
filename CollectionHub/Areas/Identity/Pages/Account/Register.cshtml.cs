@@ -1,25 +1,20 @@
-#nullable disable
-
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
-using CollectionHub.Data;
-using CollectionHub.Data.Model;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using CollectionHub.Data;
+using CollectionHub.Data.Model;
 
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
+    [AllowAnonymous]
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -28,7 +23,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;  // ⭐ ADICIONAR
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
@@ -36,7 +31,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            ApplicationDbContext context)
+            ApplicationDbContext context)  // ⭐ ADICIONAR
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -44,7 +39,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
-            _context = context;
+            _context = context;  // ⭐ ADICIONAR
         }
 
         [BindProperty]
@@ -56,36 +51,33 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            [Required(ErrorMessage = "O nome é obrigatório.")]
-            [StringLength(100, ErrorMessage = "O nome deve ter no máximo {1} caracteres.")]
-            [Display(Name = "Nome")]
-            public string Name { get; set; }
-
-            [Required(ErrorMessage = "O nome de utilizador é obrigatório.")]
-            [StringLength(50, ErrorMessage = "O nome de utilizador deve ter no máximo {1} caracteres.")]
-            [Display(Name = "Nome de utilizador")]
-            public string UserName { get; set; }
-
-            [Required(ErrorMessage = "O email é obrigatório.")]
-            [EmailAddress(ErrorMessage = "Email inválido.")]
+            [Required(ErrorMessage = "O email é obrigatório")]
+            [EmailAddress(ErrorMessage = "Email inválido")]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            [Phone(ErrorMessage = "Formato de telemóvel inválido.")]
-            [StringLength(20, ErrorMessage = "O telemóvel deve ter no máximo {1} caracteres.")]
-            [Display(Name = "Telemóvel")]
-            public string CellPhone { get; set; }
-
-            [Required(ErrorMessage = "A senha é obrigatória.")]
-            [StringLength(100, ErrorMessage = "A {0} deve ter pelo menos {2} e no máximo {1} caracteres.", MinimumLength = 6)]
+            [Required(ErrorMessage = "A password é obrigatória")]
+            [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Senha")]
+            [Display(Name = "Password")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirmar senha")]
-            [Compare("Password", ErrorMessage = "A senha e a confirmação não coincidem.")]
+            [Display(Name = "Confirmar password")]
+            [Compare("Password", ErrorMessage = "As passwords não coincidem.")]
             public string ConfirmPassword { get; set; }
+
+            // ⭐ NOVO CAMPO: Nome do Utilizador
+            [Required(ErrorMessage = "O nome é obrigatório")]
+            [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
+            [Display(Name = "Nome Completo")]
+            public string Name { get; set; }
+
+            // ⭐ NOVO CAMPO: Telemóvel (opcional)
+            [Display(Name = "Telemóvel")]
+            [StringLength(20)]
+            [Phone(ErrorMessage = "Formato de telemóvel inválido")]
+            public string? CellPhone { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -97,77 +89,63 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
 
-                await _userStore.SetUserNameAsync(user, Input.UserName, CancellationToken.None);
+                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-
-                user.PhoneNumber = Input.CellPhone;
-
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
+                    _logger.LogInformation("User created a new account with password.");
+
+                    // ⭐ CRIAR O MyUser ASSOCIADO
                     var myUser = new MyUser
                     {
                         Name = Input.Name,
-                        Role = "Utilizador",
                         CellPhone = Input.CellPhone,
+                        Role = "Utilizador",
+                        RegisterDate = DateTime.Now,
                         UserID = user.Id,
-                        RegisterDate = DateTime.Now
+                        WalletBalance = 100.00m  // ⭐ SALDO INICIAL
                     };
 
                     _context.MyUsers.Add(myUser);
                     await _context.SaveChangesAsync();
 
-                    _logger.LogInformation("User created a new account with password.");
-
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
                         pageHandler: null,
-                        values: new
-                        {
-                            area = "Identity",
-                            userId = userId,
-                            code = code,
-                            returnUrl = returnUrl
-                        },
+                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(
-                        Input.Email,
-                        "Confirmar email",
-                        $"Confirme a sua conta clicando <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>aqui</a>.");
+                    await _emailSender.SendEmailAsync(Input.Email, "Confirme o seu email",
+                        $"Por favor, confirme a sua conta <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicando aqui</a>.");
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
-                        return RedirectToPage("RegisterConfirmation", new
-                        {
-                            email = Input.Email,
-                            returnUrl = returnUrl
-                        });
+                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
                     }
-
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnUrl);
+                    else
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(returnUrl);
+                    }
                 }
-
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
 
+            // If we got this far, something failed, redisplay form
             return Page();
         }
 
@@ -179,8 +157,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             }
             catch
             {
-                throw new InvalidOperationException(
-                    $"Não foi possível criar uma instância de '{nameof(IdentityUser)}'.");
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
+                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
         }
 
@@ -188,9 +167,8 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         {
             if (!_userManager.SupportsUserEmail)
             {
-                throw new NotSupportedException("O Identity requer suporte para email.");
+                throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-
             return (IUserEmailStore<IdentityUser>)_userStore;
         }
     }
