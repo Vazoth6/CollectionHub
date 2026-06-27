@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
 using CollectionHub.Data;
 using CollectionHub.Data.Model;
 
@@ -23,7 +22,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly ApplicationDbContext _context;  // ⭐ ADICIONAR
+        private readonly ApplicationDbContext _context;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
@@ -31,7 +30,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
-            ApplicationDbContext context)  // ⭐ ADICIONAR
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -39,7 +38,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
-            _context = context;  // ⭐ ADICIONAR
+            _context = context;
         }
 
         [BindProperty]
@@ -51,33 +50,30 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
         public class InputModel
         {
+            [Required(ErrorMessage = "O nome é obrigatório")]
+            [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
+            [Display(Name = "Nome completo")]
+            public string Name { get; set; }
+
             [Required(ErrorMessage = "O email é obrigatório")]
             [EmailAddress(ErrorMessage = "Email inválido")]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            [Required(ErrorMessage = "A password é obrigatória")]
-            [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
+            [Phone(ErrorMessage = "Formato de telemóvel inválido")]
+            [Display(Name = "Telemóvel")]
+            public string? CellPhone { get; set; }
+
+            [Required(ErrorMessage = "A senha é obrigatória")]
+            [StringLength(100, ErrorMessage = "A senha deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Senha")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Confirmar password")]
-            [Compare("Password", ErrorMessage = "As passwords não coincidem.")]
+            [Display(Name = "Confirmar senha")]
+            [Compare("Password", ErrorMessage = "As senhas não coincidem.")]
             public string ConfirmPassword { get; set; }
-
-            // ⭐ NOVO CAMPO: Nome do Utilizador
-            [Required(ErrorMessage = "O nome é obrigatório")]
-            [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
-            [Display(Name = "Nome Completo")]
-            public string Name { get; set; }
-
-            // ⭐ NOVO CAMPO: Telemóvel (opcional)
-            [Display(Name = "Telemóvel")]
-            [StringLength(20)]
-            [Phone(ErrorMessage = "Formato de telemóvel inválido")]
-            public string? CellPhone { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -111,7 +107,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
                         Role = "Utilizador",
                         RegisterDate = DateTime.Now,
                         UserID = user.Id,
-                        WalletBalance = 100.00m  // ⭐ SALDO INICIAL
+                        WalletBalance = 5000.00m
                     };
 
                     _context.MyUsers.Add(myUser);
@@ -145,7 +141,6 @@ namespace CollectionHub.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
         }
 
@@ -157,9 +152,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'.");
             }
         }
 
