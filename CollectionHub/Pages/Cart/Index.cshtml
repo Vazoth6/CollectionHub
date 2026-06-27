@@ -1,19 +1,19 @@
 ﻿@page "/Cart"
 @model CollectionHub.Pages.Cart.IndexModel
 @{
-    ViewData["Title"] = "Carrinho";
+    ViewData["Title"] = "Carrinho completo";
 }
 
-<div class="container mt-4">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+<div class="container mt-4 cart-full-page">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
         <div>
             <h1 class="display-6 fw-bold mb-1">
-                <i class="bi bi-cart3"></i> Carrinho
+                <i class="bi bi-cart3"></i> Carrinho completo
             </h1>
-            <p class="text-muted mb-0">Revê os coleccionáveis antes de finalizar a compra.</p>
+            <p class="text-muted mb-0">Revê os colecionáveis, ajusta quantidades e confirma o total antes do pagamento.</p>
         </div>
-        <a href="/Shop" class="btn btn-outline-primary">
-            <i class="bi bi-shop"></i> Continuar a Comprar
+        <a asp-page="/Shop/Index" class="btn btn-outline-primary">
+            <i class="bi bi-shop"></i> Continuar a comprar
         </a>
     </div>
 
@@ -21,7 +21,7 @@
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
     }
 
@@ -29,7 +29,7 @@
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
     }
 
@@ -37,69 +37,108 @@
     {
         <div class="row g-4">
             <div class="col-lg-8">
-                @foreach (var item in Model.Cart.Items)
-                {
-                    <div class="card shadow-sm border-0 mb-3">
-                        <div class="card-body">
-                            <div class="row g-3 align-items-center">
-                                <div class="col-md-3">
-                                    <div class="cart-image-container">
-                                        @if (!string.IsNullOrEmpty(item.ImageUrl))
-                                        {
-                                            <img src="@item.ImageUrl" alt="@item.Name" class="img-fluid rounded-3" />
-                                        }
-                                        else
-                                        {
-                                            <div class="cart-image-placeholder">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <strong>Itens no carrinho</strong>
+                        <span class="badge text-bg-secondary">@Model.Cart.TotalItems item(ns)</span>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        @foreach (var item in Model.Cart.Items)
+                        {
+                            <div class="list-group-item p-3 p-md-4">
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-md-2">
+                                        <div class="cart-full-image">
+                                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                            {
+                                                <img src="@item.ImageUrl" alt="@item.Name" />
+                                            }
+                                            else
+                                            {
                                                 <i class="bi bi-box-seam"></i>
-                                            </div>
-                                        }
+                                            }
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6">
-                                    <h5 class="fw-bold mb-1">@item.Name</h5>
-                                    <div class="text-muted small mb-2">
-                                        <i class="bi bi-person-circle"></i> Vendedor: @item.SellerName
+                                    <div class="col-md-5">
+                                        <h5 class="fw-bold mb-1">@item.Name</h5>
+                                        <div class="text-muted small mb-1">
+                                            <i class="bi bi-person-circle"></i> Vendedor: @item.SellerName
+                                        </div>
+                                        <div class="small text-success fw-semibold">
+                                            @item.Price.ToString("C") por unidade
+                                        </div>
                                     </div>
-                                    <div class="text-muted small">
-                                        Quantidade: @item.Quantity
-                                    </div>
-                                </div>
 
-                                <div class="col-md-3 text-md-end">
-                                    <div class="fs-4 fw-bold mb-3">@item.Subtotal.ToString("C")</div>
-                                    <form method="post" asp-page-handler="Remove">
-                                        <input type="hidden" name="itemId" value="@item.Id" />
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                                            <i class="bi bi-trash"></i> Remover
-                                        </button>
-                                    </form>
+                                    <div class="col-md-3">
+                                        @* Formulário separado para permitir atualizar apenas a quantidade deste item. *@
+                                        <form method="post" asp-page-handler="UpdateQuantity" class="d-flex align-items-center gap-2">
+                                            <input type="hidden" name="itemId" value="@item.Id" />
+                                            <label class="visually-hidden" for="quantity-@item.Id">Quantidade</label>
+                                            <input id="quantity-@item.Id"
+                                                   type="number"
+                                                   name="quantity"
+                                                   class="form-control form-control-sm cart-quantity-input"
+                                                   value="@item.Quantity"
+                                                   min="0"
+                                                   max="99" />
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm" title="Atualizar quantidade">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="col-md-2 text-md-end">
+                                        <div class="fw-bold fs-5 mb-2">@item.Subtotal.ToString("C")</div>
+                                        <form method="post" asp-page-handler="Remove">
+                                            <input type="hidden" name="itemId" value="@item.Id" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-trash"></i> Remover
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     </div>
-                }
+                </div>
             </div>
 
             <div class="col-lg-4">
-                <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card shadow-sm border-0 cart-summary-card">
                     <div class="card-body">
-                        <h5 class="card-title mb-4">Resumo</h5>
+                        <h5 class="card-title mb-4">
+                            <i class="bi bi-receipt"></i> Resumo da compra
+                        </h5>
+
                         <div class="d-flex justify-content-between mb-2">
                             <span>Total de itens:</span>
                             <strong>@Model.Cart.TotalItems</strong>
                         </div>
-                        <div class="d-flex justify-content-between mb-4">
-                            <span>Total:</span>
-                            <strong class="text-primary fs-4">@Model.Cart.Total.ToString("C")</strong>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <strong>@Model.Cart.Total.ToString("C")</strong>
                         </div>
-                        <a href="/Cart/Checkout" class="btn btn-success btn-lg w-100 mb-2">
-                            <i class="bi bi-credit-card"></i> Finalizar Compra
+                        <div class="d-flex justify-content-between text-muted small mb-3">
+                            <span>Entrega:</span>
+                            <span>Definida no checkout</span>
+                        </div>
+
+                        <hr />
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span class="fw-bold">Total:</span>
+                            <strong class="text-primary fs-3">@Model.Cart.Total.ToString("C")</strong>
+                        </div>
+
+                        <a asp-page="/Cart/Checkout" class="btn btn-success btn-lg w-100 mb-2">
+                            <i class="bi bi-credit-card"></i> Finalizar compra
                         </a>
+
                         <form method="post" asp-page-handler="Clear">
                             <button type="submit" class="btn btn-outline-danger w-100">
-                                <i class="bi bi-trash"></i> Limpar Carrinho
+                                <i class="bi bi-trash"></i> Limpar carrinho
                             </button>
                         </form>
                     </div>
@@ -109,35 +148,58 @@
     }
     else
     {
-        <div class="alert alert-info text-center py-5">
-            <i class="bi bi-cart-x fs-1"></i>
-            <h4 class="mt-2">O carrinho está vazio</h4>
-            <p>Adiciona coleccionáveis da loja antes de finalizar a compra.</p>
-            <a href="/Shop" class="btn btn-primary">Ir para a Loja</a>
+        <div class="card border-0 shadow-sm text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-cart-x display-1 text-muted"></i>
+                <h4 class="mt-3">O carrinho está vazio</h4>
+                <p class="text-muted">Adiciona colecionáveis da loja antes de finalizar a compra.</p>
+                <a asp-page="/Shop/Index" class="btn btn-primary">
+                    <i class="bi bi-shop"></i> Ir para a loja
+                </a>
+            </div>
         </div>
     }
 </div>
 
 @section Styles {
     <style>
-        .cart-image-container {
-            background: #f8f9fa;
-            border-radius: 12px;
-            min-height: 120px;
+        .cart-full-image {
+            width: 100%;
+            min-height: 110px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
         }
 
-            .cart-image-container img {
-                max-height: 120px;
-                object-fit: contain;
-            }
+        .cart-full-image img {
+            width: 100%;
+            height: 110px;
+            object-fit: contain;
+            padding: 0.5rem;
+        }
 
-        .cart-image-placeholder i {
-            font-size: 3rem;
-            color: #dee2e6;
+        .cart-full-image i {
+            font-size: 2.75rem;
+            color: #cbd5e1;
+        }
+
+        .cart-quantity-input {
+            max-width: 90px;
+        }
+
+        .cart-summary-card {
+            position: sticky;
+            top: 95px;
+        }
+
+        @@media (max-width: 991.98px) {
+            .cart-summary-card {
+                position: static;
+            }
         }
     </style>
 }

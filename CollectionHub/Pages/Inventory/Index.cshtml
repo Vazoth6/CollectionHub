@@ -19,14 +19,29 @@
                 </p>
             </div>
 
-            <form method="post" asp-page="/Profile/Switch" class="d-flex align-items-center gap-2">
-                <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
-                <label class="fw-semibold" for="profile">Trocar perfil:</label>
-                <select id="profile" name="profile" class="form-select" onchange="this.form.submit()">
-                    <option value="Comprador" selected="@Model.IsBuyerProfile">Comprador</option>
-                    <option value="Vendedor" selected="@Model.IsSellerProfile">Vendedor</option>
-                </select>
-            </form>
+            <div class="profile-switcher" aria-label="Trocar perfil ativo">
+                <span class="profile-switcher-label">Trocar perfil:</span>
+
+                @* Cada botão submete diretamente o perfil escolhido, evitando a dropdown e mantendo o retorno à página atual. *@
+                <form method="post" asp-page="/Profile/Switch" class="profile-switcher-form">
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit"
+                            name="profile"
+                            value="Comprador"
+                            class="btn profile-switch-button @(Model.IsBuyerProfile ? "active" : "")"
+                            aria-pressed="@Model.IsBuyerProfile">
+                        <i class="bi bi-bag-check"></i> Comprador
+                    </button>
+
+                    <button type="submit"
+                            name="profile"
+                            value="Vendedor"
+                            class="btn profile-switch-button @(Model.IsSellerProfile ? "active" : "")"
+                            aria-pressed="@Model.IsSellerProfile">
+                        <i class="bi bi-shop"></i> Vendedor
+                    </button>
+                </form>
+            </div>
 
             <hr class="w-100" />
         </div>

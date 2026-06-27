@@ -33,14 +33,40 @@ namespace CollectionHub.Services
         {
             var cart = GetCart();
 
-            if (cart.Items.Any(i => i.Id == item.Id))
+            var existingItem = cart.Items.FirstOrDefault(i => i.Id == item.Id);
+            if (existingItem != null)
             {
+                // O mesmo colecionável não deve aparecer duplicado no carrinho; incrementamos apenas a quantidade.
+                existingItem.Quantity += 1;
                 SaveCart(cart);
                 return;
             }
 
-            item.Quantity = 1;
+            item.Quantity = Math.Max(1, item.Quantity);
             cart.Items.Add(item);
+            SaveCart(cart);
+        }
+
+        public void UpdateQuantity(int itemId, int quantity)
+        {
+            var cart = GetCart();
+            var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
+
+            if (item == null)
+            {
+                return;
+            }
+
+            // Quantidade zero funciona como remoção para simplificar os formulários e a API.
+            if (quantity <= 0)
+            {
+                cart.Items.Remove(item);
+            }
+            else
+            {
+                item.Quantity = quantity;
+            }
+
             SaveCart(cart);
         }
 

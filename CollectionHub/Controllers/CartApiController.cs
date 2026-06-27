@@ -1,11 +1,12 @@
-﻿using CollectionHub.Services;
-using Microsoft.AspNetCore.Cors.Infrastructure;
+﻿using CollectionHub.Models;
+using CollectionHub.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CollectionHub.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Produces("application/json")]
     public class CartApiController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -15,23 +16,71 @@ namespace CollectionHub.Controllers
             _cartService = cartService;
         }
 
+        /// <summary>
+        /// Devolve o carrinho guardado na sessão atual.
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(ShoppingCart), StatusCodes.Status200OK)]
+        public IActionResult Get()
+        {
+            return Ok(_cartService.GetCart());
+        }
+
+        /// <summary>
+        /// Atualiza a quantidade de um item no carrinho. Se a quantidade for zero, o item é removido.
+        /// </summary>
+        [HttpPost("update-quantity")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult UpdateQuantity([FromBody] CartQuantityRequest request)
+        {
+            _cartService.UpdateQuantity(request.ItemId, request.Quantity);
+            var cart = _cartService.GetCart();
+
+            return Ok(new
+            {
+                success = true,
+                totalItems = cart.TotalItems,
+                total = cart.Total
+            });
+        }
+
+        /// <summary>
+        /// Remove um item do carrinho da sessão atual.
+        /// </summary>
         [HttpPost("remove")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult Remove([FromBody] CartItemRequest request)
         {
             _cartService.RemoveFromCart(request.ItemId);
-            return Ok(new { success = true, totalItems = _cartService.GetCart().TotalItems });
+            var cart = _cartService.GetCart();
+
+            return Ok(new
+            {
+                success = true,
+                totalItems = cart.TotalItems,
+                total = cart.Total
+            });
         }
 
+        /// <summary>
+        /// Limpa todos os itens do carrinho da sessão atual.
+        /// </summary>
         [HttpPost("clear")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult Clear()
         {
             _cartService.ClearCart();
-            return Ok(new { success = true, totalItems = 0 });
+            return Ok(new { success = true, totalItems = 0, total = 0 });
         }
     }
 
     public class CartItemRequest
     {
         public int ItemId { get; set; }
+    }
+
+    public class CartQuantityRequest : CartItemRequest
+    {
+        public int Quantity { get; set; }
     }
 }

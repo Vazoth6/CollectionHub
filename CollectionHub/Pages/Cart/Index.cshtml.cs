@@ -1,6 +1,5 @@
 using CollectionHub.Models;
 using CollectionHub.Services;
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -15,11 +14,21 @@ namespace CollectionHub.Pages.Cart
             _cartService = cartService;
         }
 
-        public CollectionHub.Models.ShoppingCart Cart { get; set; } = new();
+        public ShoppingCart Cart { get; set; } = new();
 
         public void OnGet()
         {
             Cart = _cartService.GetCart();
+        }
+
+        public IActionResult OnPostUpdateQuantity(int itemId, int quantity)
+        {
+            _cartService.UpdateQuantity(itemId, quantity);
+            TempData["Success"] = quantity <= 0
+                ? "Item removido do carrinho."
+                : "Quantidade atualizada com sucesso.";
+
+            return RedirectToPage();
         }
 
         public IActionResult OnPostRemove(int itemId)
