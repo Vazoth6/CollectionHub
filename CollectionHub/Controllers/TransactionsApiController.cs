@@ -10,6 +10,9 @@ namespace CollectionHub.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    // <summary>
+    // Controlador da API responsável pela consulta e gestão das transacções.
+    // </summary>
     public class TransactionsApiController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -19,10 +22,10 @@ namespace CollectionHub.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// GET: api/TransactionsApi
-        /// Obtém todas as transações do utilizador autenticado
-        /// </summary>
+        // <summary>
+        // GET: api/TransactionsApi
+        // Obtém todas as transações do utilizador autenticado
+        // </summary>
         [HttpGet]
         public async Task<ActionResult<TransactionListResponseDto>> GetMyTransactions()
         {
@@ -77,10 +80,10 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// GET: api/TransactionsApi/5
-        /// Obtém uma transação específica
-        /// </summary>
+        // <summary>
+        // GET: api/TransactionsApi/5
+        // Obtém uma transação específica
+        // </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<TransactionDetailResponseDto>> GetTransaction(int id)
         {
@@ -101,7 +104,7 @@ namespace CollectionHub.Controllers
                 return NotFound(new { message = $"Transação com ID {id} não encontrada." });
             }
 
-            // Verificar se o utilizador é parte da transação
+            // Verifica se o utilizador é parte da transação
             if (transaction.BuyerId != myUserId && transaction.SellerId != myUserId && !User.IsInRole("Admin"))
             {
                 return Forbid();
@@ -135,10 +138,10 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// POST: api/TransactionsApi
-        /// Cria uma nova transação (compra)
-        /// </summary>
+        // <summary>
+        // POST: api/TransactionsApi
+        // Cria uma nova transação (compra)
+        // </summary>
         [HttpPost]
         public async Task<ActionResult<Transaction>> PostTransaction([FromBody] CreateTransactionDto createTransactionDto)
         {
@@ -153,7 +156,7 @@ namespace CollectionHub.Controllers
                 return Unauthorized(new { message = "Utilizador não autenticado." });
             }
 
-            // Verificar se o item existe e está disponível
+            // Verifica se o item existe e está disponível
             var item = await _context.Items
                 .Include(i => i.UserItems)
                 .FirstOrDefaultAsync(i => i.Id == createTransactionDto.ItemId);
@@ -168,7 +171,7 @@ namespace CollectionHub.Controllers
                 return BadRequest(new { message = "Este item não está disponível para compra." });
             }
 
-            // Obter o vendedor (dono do item)
+            // Obtém o vendedor (dono do item)
             var sellerId = item.UserItems.FirstOrDefault()?.UserId;
             if (sellerId == null)
             {
@@ -180,7 +183,7 @@ namespace CollectionHub.Controllers
                 return BadRequest(new { message = "Não pode comprar o seu próprio item." });
             }
 
-            // Criar a transação
+            // Cria a transação
             var transaction = new Transaction
             {
                 SellerId = sellerId.Value,
@@ -194,7 +197,7 @@ namespace CollectionHub.Controllers
 
             _context.Transactions.Add(transaction);
 
-            // Atualizar o status do item
+            // Actualiza o status do item
             item.Status = "Vendido";
 
             await _context.SaveChangesAsync();
@@ -202,10 +205,10 @@ namespace CollectionHub.Controllers
             return CreatedAtAction(nameof(GetTransaction), new { id = transaction.Id }, transaction);
         }
 
-        /// <summary>
-        /// PUT: api/TransactionsApi/{id}/Status
-        /// Atualiza o status de uma transação
-        /// </summary>
+        // <summary>
+        // PUT: api/TransactionsApi/{id}/Status
+        // Actualiza o estado de uma transação
+        // </summary>
         [HttpPut("{id}/Status")]
         public async Task<IActionResult> UpdateTransactionStatus(int id, [FromBody] UpdateTransactionStatusDto statusDto)
         {
@@ -224,13 +227,13 @@ namespace CollectionHub.Controllers
                 return NotFound(new { message = $"Transação com ID {id} não encontrada." });
             }
 
-            // Verificar se o utilizador é o vendedor
+            // Verifica se o utilizador é o vendedor
             if (transaction.SellerId != myUserId && !User.IsInRole("Admin"))
             {
                 return Forbid();
             }
 
-            // Status válidos: "Pendente", "Confirmada", "Enviada", "Entregue", "Cancelada"
+            // Estados válidos: "Pendente", "Confirmada", "Enviada", "Entregue", "Cancelada"
             var validStatuses = new[] { "Pendente", "Confirmada", "Enviada", "Entregue", "Cancelada" };
             if (!validStatuses.Contains(statusDto.Status))
             {
@@ -239,7 +242,7 @@ namespace CollectionHub.Controllers
 
             transaction.Status = statusDto.Status;
 
-            // Se a transação for cancelada, devolver o item ao estado disponível
+            // Se a transação for cancelada, devolve o item ao estado disponível
             if (statusDto.Status == "Cancelada")
             {
                 if (transaction.Item != null)
@@ -248,7 +251,7 @@ namespace CollectionHub.Controllers
                 }
             }
 
-            // Se a transação for entregue, marcar como concluída
+            // Se a transação for entregue, marca como concluída
             if (statusDto.Status == "Entregue")
             {
                 transaction.Status = "Concluída";
@@ -256,13 +259,13 @@ namespace CollectionHub.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Status da transação atualizado com sucesso.", status = transaction.Status });
+            return Ok(new { message = "Status da transação actualizado com sucesso.", status = transaction.Status });
         }
 
-        /// <summary>
-        /// GET: api/TransactionsApi/Stats
-        /// Obtém estatísticas de transações do utilizador
-        /// </summary>
+        // <summary>
+        // GET: api/TransactionsApi/Stats
+        // Obtém estatísticas de transações do utilizador
+        // </summary>
         [HttpGet("Stats")]
         public async Task<ActionResult<TransactionStatsDto>> GetTransactionStats()
         {
@@ -289,10 +292,10 @@ namespace CollectionHub.Controllers
             return Ok(stats);
         }
 
-        /// <summary>
-        /// GET: api/TransactionsApi/Item/{itemId}
-        /// Obtém o histórico de transações de um item específico
-        /// </summary>
+        // <summary>
+        // GET: api/TransactionsApi/Item/{itemId}
+        // Obtém o histórico de transações de um item específico
+        // </summary>
         [HttpGet("Item/{itemId}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<TransactionListItemDto>>> GetItemTransactions(int itemId)

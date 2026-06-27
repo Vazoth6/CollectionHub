@@ -15,6 +15,9 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace CollectionHub.Areas.Identity.Pages.Account.Manage
 {
+    // <summary>
+    // Representa o modelo de dados utilizado pelo email model.
+    // </summary>
     public class EmailModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -31,47 +34,53 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             _emailSender = emailSender;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        // <summary>
+        //     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        //     directly from your code. This API may change or be removed in future releases.
+        // </summary>
         public string Email { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        // <summary>
+        //     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        //     directly from your code. This API may change or be removed in future releases.
+        // </summary>
         public bool IsEmailConfirmed { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        // <summary>
+        //     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        //     directly from your code. This API may change or be removed in future releases.
+        // </summary>
         [TempData]
         public string StatusMessage { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        // <summary>
+        //     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        //     directly from your code. This API may change or be removed in future releases.
+        // </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        // <summary>
+        //     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        //     directly from your code. This API may change or be removed in future releases.
+        // </summary>
         public class InputModel
         {
             [Required(ErrorMessage = "O novo email é obrigatório.")]
             [EmailAddress(ErrorMessage = "Por favor, insira um email válido.")]
             [Display(Name = "Novo Email")]
+            // <summary>
+            // Obtém ou define novo email.
+            // </summary>
             public string NewEmail { get; set; }
 
             [Required(ErrorMessage = "A confirmação do email é obrigatória.")]
             [EmailAddress(ErrorMessage = "Por favor, insira um email válido.")]
             [Display(Name = "Confirmar Novo Email")]
             [Compare("NewEmail", ErrorMessage = "Os emails não coincidem.")]
+            // <summary>
+            // Obtém ou define email de confirmação.
+            // </summary>
             public string ConfirmEmail { get; set; }
         }
 
@@ -88,6 +97,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
         }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -100,6 +112,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
+        // <summary>
+        // Executa a operação para alterar o email.
+        // </summary>
         public async Task<IActionResult> OnPostChangeEmailAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -138,6 +153,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             return RedirectToPage();
         }
 
+        // <summary>
+        // Executa a operação para enviar o email de verificação.
+        // </summary>
         public async Task<IActionResult> OnPostSendVerificationEmailAsync()
         {
             var user = await _userManager.GetUserAsync(User);

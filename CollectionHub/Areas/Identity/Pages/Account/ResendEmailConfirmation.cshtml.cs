@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.WebUtilities;
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo resend email confirmation model.
+    // </summary>
     public class ResendEmailConfirmationModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -23,23 +26,41 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         }
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define input.
+        // </summary>
         public InputModel Input { get; set; }
 
-        // ⭐ ADICIONAR A PROPRIEDADE StatusMessage
+        // ADICIONA A PROPRIEDADE StatusMessage
         [TempData]
+        // <summary>
+        // Obtém ou define a mensagem de estado.
+        // </summary>
         public string StatusMessage { get; set; }
 
+        // <summary>
+        // Representa o modelo de dados utilizado pelo input model.
+        // </summary>
         public class InputModel
         {
             [Required(ErrorMessage = "O email é obrigatório")]
             [EmailAddress(ErrorMessage = "Email inválido")]
+            // <summary>
+            // Obtém ou define email.
+            // </summary>
             public string Email { get; set; }
         }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public void OnGet()
         {
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -54,7 +75,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            // Verificar se o email já está confirmado
+            // Verifica se o email já está confirmado
             if (await _userManager.IsEmailConfirmedAsync(user))
             {
                 StatusMessage = "Este email já foi confirmado.";

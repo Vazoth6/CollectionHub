@@ -10,6 +10,9 @@ using System.Text.Json;
 
 namespace CollectionHub.Pages.Shop
 {
+    // <summary>
+    // Representa o modelo de dados utilizado pelo details model.
+    // </summary>
     public class DetailsModel : PageModel
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -29,11 +32,26 @@ namespace CollectionHub.Pages.Shop
             _context = context;
         }
 
+        // <summary>
+        // Obtém ou define item.
+        // </summary>
         public ItemResponseDto? Item { get; set; }
+        // <summary>
+        // Obtém ou define data de submissão.
+        // </summary>
         public DateTime? SubmittedAt { get; set; }
+        // <summary>
+        // Obtém ou define contagem de likes.
+        // </summary>
         public int LikeCount { get; set; }
+        // <summary>
+        // Indica se foi liked pelo utilizador atual.
+        // </summary>
         public bool IsLikedByCurrentUser { get; set; }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync(int id)
         {
             var item = await GetItemAsync(id);
@@ -55,6 +73,9 @@ namespace CollectionHub.Pages.Shop
             return Page();
         }
 
+        // <summary>
+        // Executa a operação de adicionar ao carrinho.
+        // </summary>
         public async Task<IActionResult> OnPostAddToCartAsync(int itemId)
         {
             var item = await GetItemAsync(itemId);
@@ -102,13 +123,16 @@ namespace CollectionHub.Pages.Shop
             return RedirectToPage(new { id = itemId });
         }
 
+        // <summary>
+        // Executa a operação de alternar estado do like.
+        // </summary>
         public async Task<IActionResult> OnPostToggleLikeAsync(int itemId)
         {
             var currentUser = await GetCurrentMyUserAsync();
 
             if (currentUser == null)
             {
-                TempData["Error"] = "Inicie sessão para gostar de artigos.";
+                TempData["Error"] = "Inicie sessão para gostar de items.";
                 return RedirectToPage(new { id = itemId });
             }
 

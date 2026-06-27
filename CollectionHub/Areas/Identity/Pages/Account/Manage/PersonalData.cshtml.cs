@@ -10,6 +10,9 @@ using CollectionHub.Data.Model;
 namespace CollectionHub.Areas.Identity.Pages.Account.Manage
 {
     [Authorize]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo personal data model.
+    // </summary>
     public class PersonalDataModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -29,6 +32,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             _logger = logger;
         }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -40,6 +46,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -52,7 +61,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
 
             try
             {
-                // ⭐ 1. OBTER O MyUser ASSOCIADO
+                // 1. OBTÉM O MyUser ASSOCIADO
                 var myUser = await _context.MyUsers
                     .Include(u => u.UserItems)
                     .Include(u => u.Sales)
@@ -61,16 +70,16 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
 
                 if (myUser != null)
                 {
-                    // ⭐ 2. REMOVER ITENS DO UTILIZADOR (UserItems)
+                    // 2. REMOVE ITEMS DO UTILIZADOR (UserItems)
                     if (myUser.UserItems.Any())
                     {
                         _context.UserItems.RemoveRange(myUser.UserItems);
                     }
 
-                    // ⭐ 3. REMOVER TRANSAÇÕES (Vendas e Compras)
+                    // 3. REMOVE TRANSAÇÕES (Vendas e Compras)
                     if (myUser.Sales.Any())
                     {
-                        // Devolver itens ao estado disponível
+                        // Devolve items ao estado disponível
                         foreach (var sale in myUser.Sales)
                         {
                             if (sale.Item != null && sale.Status != "Concluída")
@@ -86,18 +95,18 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
                         _context.Transactions.RemoveRange(myUser.Purchases);
                     }
 
-                    // ⭐ 4. REMOVER O MyUser
+                    // 4. REMOVE O MyUser
                     _context.MyUsers.Remove(myUser);
                 }
 
-                // ⭐ 5. REMOVER O IdentityUser
+                // 5. REMOVE O IdentityUser
                 var result = await _userManager.DeleteAsync(user);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation($"Utilizador '{user.Email}' eliminou a sua conta.");
 
-                    // Fazer logout e redirecionar
+                    // Faz logout e redireciona
                     await _signInManager.SignOutAsync();
                     TempData["Success"] = "A sua conta foi eliminada com sucesso.";
                     return RedirectToPage("/Index");

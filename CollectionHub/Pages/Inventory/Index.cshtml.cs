@@ -7,6 +7,9 @@ using CollectionHub.Data;
 namespace CollectionHub.Pages.Inventory
 {
     [Authorize]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo index model.
+    // </summary>
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -16,18 +19,42 @@ namespace CollectionHub.Pages.Inventory
             _context = context;
         }
 
+        // <summary>
+        // Obtém ou define o saldo da carteira.
+        // </summary>
         public decimal WalletBalance { get; set; }
+        // <summary>
+        // Obtém ou define o perfil ativo.
+        // </summary>
         public string ActiveProfile { get; set; } = "Comprador";
+        // <summary>
+        // Obtém ou define URL de retorno.
+        // </summary>
         public string ReturnUrl { get; set; } = "/Inventory";
 
         public bool IsBuyerProfile => ActiveProfile == "Comprador";
         public bool IsSellerProfile => ActiveProfile == "Vendedor";
 
+        // <summary>
+        // Obtém ou define items comprados.
+        // </summary>
         public List<InventoryItemDto> ItemsPurchased { get; set; } = new();
+        // <summary>
+        // Obtém ou define items à venda.
+        // </summary>
         public List<InventoryItemDto> ItemsForSale { get; set; } = new();
+        // <summary>
+        // Obtém ou define transações.
+        // </summary>
         public List<InventoryTransactionDto> Transactions { get; set; } = new();
+        // <summary>
+        // Obtém ou define vendas concluídas (como vendedor).
+        // </summary>
         public int CompletedSalesCount { get; set; }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync()
         {
             ReturnUrl = HttpContext.Request.Path + HttpContext.Request.QueryString;
@@ -49,6 +76,9 @@ namespace CollectionHub.Pages.Inventory
             await LoadUserData(userId);
         }
 
+        // <summary>
+        // Executa a operação de colocar item à venda.
+        // </summary>
         public async Task<IActionResult> OnPostSellItemAsync(int itemId, decimal salePrice)
         {
             var userId = await GetCurrentMyUserId();
@@ -92,7 +122,7 @@ namespace CollectionHub.Pages.Inventory
 
         private async Task LoadUserData(int userId)
         {
-            // ⭐ ITENS NA COLEÇÃO (comprados e não disponíveis para venda)
+            // ITEMS NA COLEÇÃO (comprados e não disponíveis para venda)
             ItemsPurchased = await _context.UserItems
                 .Include(ui => ui.Item)
                 .ThenInclude(i => i!.Category)
@@ -119,7 +149,7 @@ namespace CollectionHub.Pages.Inventory
                 })
                 .ToListAsync();
 
-            // ⭐ ITENS À VENDA
+            // ITEMS À VENDA
             ItemsForSale = await _context.UserItems
                 .Include(ui => ui.Item)
                 .Where(ui => ui.UserId == userId && ui.Item != null && ui.Item.Status == "Disponível")
@@ -135,11 +165,11 @@ namespace CollectionHub.Pages.Inventory
                 })
                 .ToListAsync();
 
-            // ⭐ VENDAS REALIZADAS (transações concluídas como vendedor)
+            // VENDAS REALIZADAS (transações concluídas como vendedor)
             CompletedSalesCount = await _context.Transactions
                 .CountAsync(t => t.SellerId == userId && t.IsPaid);
 
-            // ⭐ TRANSAÇÕES (Compras + Vendas)
+            // TRANSAÇÕES (Compras + Vendas)
             var purchases = await _context.Transactions
                 .Include(t => t.Item)
                 .Include(t => t.Seller)
@@ -205,28 +235,85 @@ namespace CollectionHub.Pages.Inventory
         }
     }
 
+    // <summary>
+    // Representa os dados transferidos entre a interface/API e a aplicação para inventory item dto.
+    // </summary>
     public class InventoryItemDto
     {
+        // <summary>
+        // Obtém ou define id.
+        // </summary>
         public int Id { get; set; }
+        // <summary>
+        // Obtém ou define nome.
+        // </summary>
         public string Name { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define descrição.
+        // </summary>
         public string Description { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define preço.
+        // </summary>
         public decimal Price { get; set; }
+        // <summary>
+        // Obtém ou define endereço da imagem.
+        // </summary>
         public string? ImageUrl { get; set; }
+        // <summary>
+        // Obtém ou define estado.
+        // </summary>
         public string Status { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define data de compra.
+        // </summary>
         public DateTime? PurchaseDate { get; set; }
+        // <summary>
+        // Obtém ou define data de submissão.
+        // </summary>
         public DateTime SubmittedAt { get; set; }
+        // <summary>
+        // Obtém ou define endereço de envio.
+        // </summary>
         public string? ShippingAddress { get; set; }
     }
 
+    // <summary>
+    // Representa os dados transferidos entre a interface/API e a aplicação para inventory transaction dto.
+    // </summary>
     public class InventoryTransactionDto
     {
+        // <summary>
+        // Obtém ou define id.
+        // </summary>
         public int Id { get; set; }
+        // <summary>
+        // Obtém ou define data.
+        // </summary>
         public DateTime Date { get; set; }
+        // <summary>
+        // Obtém ou define preço.
+        // </summary>
         public decimal Price { get; set; }
+        // <summary>
+        // Obtém ou define endereço de envio.
+        // </summary>
         public string ShippingAddress { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define estado.
+        // </summary>
         public string Status { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define nome do item.
+        // </summary>
         public string ItemName { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define nome da outra parte.
+        // </summary>
         public string OtherPartyName { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define tipo de transação.
+        // </summary>
         public string TransactionType { get; set; } = string.Empty;
     }
 }

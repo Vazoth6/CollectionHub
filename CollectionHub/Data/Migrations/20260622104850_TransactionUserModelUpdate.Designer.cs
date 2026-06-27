@@ -15,7 +15,7 @@ namespace CollectionHub.Data.Migrations
     [Migration("20260622104850_TransactionUserModelUpdate")]
     partial class TransactionUserModelUpdate
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

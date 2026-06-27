@@ -14,6 +14,9 @@ using CollectionHub.Data.Model;
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo register model.
+    // </summary>
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -42,46 +45,79 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         }
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define input.
+        // </summary>
         public InputModel Input { get; set; }
 
+        // <summary>
+        // Obtém ou define URL de retorno.
+        // </summary>
         public string ReturnUrl { get; set; }
 
+        // <summary>
+        // Obtém ou define external logins.
+        // </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
+        // <summary>
+        // Representa o modelo de dados utilizado pelo input model.
+        // </summary>
         public class InputModel
         {
             [Required(ErrorMessage = "O nome é obrigatório")]
             [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
             [Display(Name = "Nome completo")]
+            // <summary>
+            // Obtém ou define nome.
+            // </summary>
             public string Name { get; set; }
 
             [Required(ErrorMessage = "O email é obrigatório")]
             [EmailAddress(ErrorMessage = "Email inválido")]
             [Display(Name = "Email")]
+            // <summary>
+            // Obtém ou define email.
+            // </summary>
             public string Email { get; set; }
 
             [Phone(ErrorMessage = "Formato de telemóvel inválido")]
             [Display(Name = "Telemóvel")]
+            // <summary>
+            // Obtém ou define número de telemóvel.
+            // </summary>
             public string? CellPhone { get; set; }
 
             [Required(ErrorMessage = "A senha é obrigatória")]
             [StringLength(100, ErrorMessage = "A senha deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Senha")]
+            // <summary>
+            // Obtém ou define palavra-passe.
+            // </summary>
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
             [Display(Name = "Confirmar senha")]
             [Compare("Password", ErrorMessage = "As senhas não coincidem.")]
+            // <summary>
+            // Obtém ou define palavra-passe de confirmação.
+            // </summary>
             public string ConfirmPassword { get; set; }
         }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
@@ -97,9 +133,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    _logger.LogInformation("User created a new account with palavra-passe.");
 
-                    // ⭐ CRIAR O MyUser ASSOCIADO
+                    // CRIA O MyUser ASSOCIADO
                     var myUser = new MyUser
                     {
                         Name = Input.Name,

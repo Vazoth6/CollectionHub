@@ -11,6 +11,9 @@ using CollectionHub.Data.Model;
 namespace CollectionHub.Areas.Identity.Pages.Account.Manage
 {
     [Authorize]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo index model.
+    // </summary>
     public partial class IndexModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -31,51 +34,84 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
         }
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define input.
+        // </summary>
         public InputModel Input { get; set; }
 
+        // <summary>
+        // Representa o modelo de dados utilizado pelo input model.
+        // </summary>
         public class InputModel
         {
-            // ⭐ NOME (do MyUser)
+            // NOME (do MyUser)
             [Required(ErrorMessage = "O nome é obrigatório")]
             [StringLength(100, ErrorMessage = "O nome deve ter no máximo 100 caracteres")]
             [Display(Name = "Nome")]
+            // <summary>
+            // Obtém ou define nome.
+            // </summary>
             public string Name { get; set; } = string.Empty;
 
             [Display(Name = "Email")]
+            // <summary>
+            // Obtém ou define email.
+            // </summary>
             public string Email { get; set; } = string.Empty;
 
-            // ⭐ TELEMÓVEL (do MyUser)
+            // TELEMÓVEL (do MyUser)
             [Display(Name = "Telemóvel")]
             [StringLength(20)]
             [RegularExpression(@"^(\+[0-9]{1,3})?[0-9]{9,12}$",
                 ErrorMessage = "O número de telemóvel deve conter apenas dígitos e pode começar opcionalmente com um + e o indicativo do país.")]
             [Phone(ErrorMessage = "Formato de telemóvel inválido")]
+            // <summary>
+            // Obtém ou define número de telemóvel.
+            // </summary>
             public string? CellPhone { get; set; }
 
-            // ⭐ CARGO (do MyUser - READONLY)
+            // CARGO (do MyUser)
             [Display(Name = "Cargo")]
+            // <summary>
+            // Obtém ou define cargo.
+            // </summary>
             public string Role { get; set; } = string.Empty;
 
-            // ⭐ DATA DE REGISTO (do MyUser - READONLY)
+            // DATA DE REGISTO (do MyUser)
             [Display(Name = "Membro desde")]
+            // <summary>
+            // Obtém ou define data de registo.
+            // </summary>
             public DateTime RegisterDate { get; set; }
 
-            // ⭐ SALDO (do MyUser - READONLY)
+            // SALDO (do MyUser)
             [Display(Name = "Saldo")]
+            // <summary>
+            // Obtém ou define saldo.
+            // </summary>
             public decimal WalletBalance { get; set; }
 
-            // ⭐ ALTERAR PASSWORD
+            // ALTERA PASSWORD
             [Display(Name = "Alterar Password")]
+            // <summary>
+            // Obtém ou define a palavra-passe.
+            // </summary>
             public bool ChangePassword { get; set; }
 
             [DataType(DataType.Password)]
             [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
             [Display(Name = "Nova Password")]
+            // <summary>
+            // Obtém ou define nova palavra-passe.
+            // </summary>
             public string? NewPassword { get; set; }
 
             [DataType(DataType.Password)]
             [Compare("NewPassword", ErrorMessage = "As passwords não coincidem.")]
             [Display(Name = "Confirmar Nova Password")]
+            // <summary>
+            // Obtém ou define confirmação da nova palavra-passe.
+            // </summary>
             public string? ConfirmNewPassword { get; set; }
         }
 
@@ -87,13 +123,13 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
                 throw new InvalidOperationException($"Não foi possível carregar o utilizador com ID '{_userManager.GetUserId(User)}'.");
             }
 
-            // Buscar o MyUser associado
+            // Procura o MyUser associado
             var myUser = await _context.MyUsers
                 .FirstOrDefaultAsync(m => m.UserID == identityUser.Id);
 
             if (myUser == null)
             {
-                // Criar MyUser se não existir (fallback)
+                // Cria MyUser se não existir
                 myUser = new MyUser
                 {
                     Name = identityUser.Email?.Split('@')[0] ?? "Utilizador",
@@ -120,6 +156,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             };
         }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -132,6 +171,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -164,25 +206,23 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             }
             else
             {
-                // ⭐ ATUALIZAR CAMPOS DO MyUser
+                // ATUALIZA CAMPOS DO MyUser
                 myUser.Name = Input.Name;
                 myUser.CellPhone = Input.CellPhone;
             }
 
             await _context.SaveChangesAsync();
 
-            // ⭐ ALTERAR PASSWORD (se solicitado)
+            // ALTERA PASSWORD (se solicitado)
             if (Input.ChangePassword && !string.IsNullOrEmpty(Input.NewPassword))
             {
-                // ⭐ CORRIGIDO: Usar ChangePasswordAsync com a password atual
-                // Primeiro, verificar se a password atual está correta
+                // Primeiro, verifica se a password atual está correta
                 var hasPassword = await _userManager.HasPasswordAsync(user);
                 if (hasPassword)
                 {
                     // Para alterar a password, precisamos da password atual.
-                    // Como não a temos, podemos usar um fluxo alternativo:
-                    // 1. Remover a password atual
-                    // 2. Adicionar a nova password
+                    // 1. Remove a password atual
+                    // 2. Adiciona a nova password
                     var removePasswordResult = await _userManager.RemovePasswordAsync(user);
                     if (removePasswordResult.Succeeded)
                     {
@@ -209,7 +249,7 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
                 }
                 else
                 {
-                    // Se o utilizador não tiver password (ex: login com externo), adicionar diretamente
+                    // Se o utilizador não tiver password adicionar diretamente
                     var addPasswordResult = await _userManager.AddPasswordAsync(user, Input.NewPassword);
                     if (!addPasswordResult.Succeeded)
                     {
@@ -226,8 +266,8 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
                 await _signInManager.RefreshSignInAsync(user);
             }
 
-            _logger.LogInformation("Perfil atualizado com sucesso.");
-            TempData["Success"] = "Perfil atualizado com sucesso!";
+            _logger.LogInformation("Perfil actualizado com sucesso.");
+            TempData["Success"] = "Perfil actualizado com sucesso!";
             await LoadAsync(user);
             return RedirectToPage();
         }

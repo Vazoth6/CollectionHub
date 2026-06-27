@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
+    // <summary>
+    // Representa o modelo de dados utilizado pelo confirm email model.
+    // </summary>
     public class ConfirmEmailModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -23,12 +26,15 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             _userManager = userManager;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        // <summary>
+        //     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        //     directly from your code. This API may change or be removed in future releases.
+        // </summary>
         [TempData]
         public string StatusMessage { get; set; }
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync(string userId, string code)
         {
             if (userId == null || code == null)

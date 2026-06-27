@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using CollectionHub.Data.Seed;
@@ -7,6 +7,9 @@ namespace CollectionHub.Data.Seed
 {
     public static class DbInitializerExtension
     {
+        // <summary>
+        // Executa a operação seed database .
+        // </summary>
         public static async Task SeedDatabaseAsync(this IApplicationBuilder app)
         {
             using var scope = app.ApplicationServices.CreateScope();

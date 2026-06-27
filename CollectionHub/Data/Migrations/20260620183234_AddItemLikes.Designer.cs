@@ -15,7 +15,7 @@ namespace CollectionHub.Data.Migrations
     [Migration("20260620183234_AddItemLikes")]
     partial class AddItemLikes
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

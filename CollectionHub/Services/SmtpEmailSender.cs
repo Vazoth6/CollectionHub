@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace CollectionHub.Services
 {
+    // <summary>
+    // Serviço responsável pelo envio de emails através de SMTP.
+    // </summary>
     public class SmtpEmailSender : IEmailSender
     {
         private readonly IConfiguration _configuration;
@@ -15,6 +18,9 @@ namespace CollectionHub.Services
             _logger = logger;
         }
 
+        // <summary>
+        // Executa a operação de envio de email.
+        // </summary>
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             var host = _configuration["Email:Smtp:Host"];

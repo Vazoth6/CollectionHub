@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.WebUtilities;
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo register confirmation model.
+    // </summary>
     public class RegisterConfirmationModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -22,10 +25,22 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             _environment = environment;
         }
 
+        // <summary>
+        // Obtém ou define email.
+        // </summary>
         public string Email { get; set; }
+        // <summary>
+        // Obtém ou define confirm account link.
+        // </summary>
         public bool DisplayConfirmAccountLink { get; set; }
+        // <summary>
+        // Obtém ou define email confirmation url.
+        // </summary>
         public string EmailConfirmationUrl { get; set; }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync(string email, string returnUrl = null)
         {
             if (email == null) return RedirectToPage("/Index");

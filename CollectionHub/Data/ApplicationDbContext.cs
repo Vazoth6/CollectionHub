@@ -1,16 +1,37 @@
-﻿using CollectionHub.Data.Model;
+using CollectionHub.Data.Model;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CollectionHub.Data
 {
+    // <summary>
+    // Contexto principal do Entity Framework, responsável por mapear as entidades da aplicação para a base de dados.
+    // </summary>
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
     {
+        // <summary>
+        // Obtém ou define utilizadores.
+        // </summary>
         public DbSet<MyUser> MyUsers { get; set; }
+        // <summary>
+        // Obtém ou define categorias.
+        // </summary>
         public DbSet<Category> Categories { get; set; }
+        // <summary>
+        // Obtém ou define items.
+        // </summary>
         public DbSet<Item> Items { get; set; }
+        // <summary>
+        // Obtém ou define transactions.
+        // </summary>
         public DbSet<Transaction> Transactions { get; set; }
+        // <summary>
+        // Obtém ou define user items.
+        // </summary>
         public DbSet<UserItem> UserItems { get; set; }
+        // <summary>
+        // Obtém ou define item likes.
+        // </summary>
         public DbSet<ItemLike> ItemLikes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

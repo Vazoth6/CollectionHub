@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace CollectionHub.Areas.Identity.Pages.Account
 {
+    // <summary>
+    // Representa o modelo de dados utilizado pelo login model.
+    // </summary>
     public class LoginModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -25,29 +28,56 @@ namespace CollectionHub.Areas.Identity.Pages.Account
         }
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define input.
+        // </summary>
         public InputModel Input { get; set; }
 
+        // <summary>
+        // Obtém ou define logins externos.
+        // </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
+        // <summary>
+        // Obtém ou define URL de retorno.
+        // </summary>
         public string ReturnUrl { get; set; }
 
         [TempData]
+        // <summary>
+        // Obtém ou define mensagem de erro.
+        // </summary>
         public string ErrorMessage { get; set; }
 
+        // <summary>
+        // Representa o modelo de dados utilizado pelo input model.
+        // </summary>
         public class InputModel
         {
             [Required]
             [EmailAddress]
+            // <summary>
+            // Obtém ou define email.
+            // </summary>
             public string Email { get; set; }
 
             [Required]
             [DataType(DataType.Password)]
+            // <summary>
+            // Obtém ou define palavra-passe.
+            // </summary>
             public string Password { get; set; }
 
             [Display(Name = "Remember me?")]
+            // <summary>
+            // Obtém ou define opção para manter a sessão iniciada.
+            // </summary>
             public bool RememberMe { get; set; }
         }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync(string returnUrl = null)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
@@ -64,6 +94,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");

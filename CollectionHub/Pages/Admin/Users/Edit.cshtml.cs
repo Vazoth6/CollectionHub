@@ -10,6 +10,9 @@ using System.ComponentModel.DataAnnotations;
 namespace CollectionHub.Pages.Admin.Users
 {
     [Authorize(Roles = "Admin")]
+    // <summary>
+    // Representa o modelo de dados utilizado para o edit model.
+    // </summary>
     public class EditModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -22,10 +25,19 @@ namespace CollectionHub.Pages.Admin.Users
         }
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define edit user.
+        // </summary>
         public EditUserDto EditUser { get; set; } = new();
 
+        // <summary>
+        // Obtém ou define lista de seleção de perfis.
+        // </summary>
         public List<SelectListItem> RolesSelectList { get; set; } = new();
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync(int id)
         {
             var myUser = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == id);
@@ -53,6 +65,9 @@ namespace CollectionHub.Pages.Admin.Users
             return Page();
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -81,7 +96,7 @@ namespace CollectionHub.Pages.Admin.Users
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"Utilizador '{EditUser.Name}' atualizado com sucesso!";
+            TempData["Success"] = $"Utilizador '{EditUser.Name}' actualizado com sucesso!";
             return RedirectToPage("/Admin/Users/Index");
         }
 
@@ -100,21 +115,39 @@ namespace CollectionHub.Pages.Admin.Users
         }
     }
 
+    // <summary>
+    // Representa os dados transferidos entre a interface/API e a aplicação para edit user dto.
+    // </summary>
     public class EditUserDto
     {
+        // <summary>
+        // Obtém ou define id.
+        // </summary>
         public int Id { get; set; }
 
         [Required(ErrorMessage = "O nome é obrigatório")]
         [StringLength(100)]
+        // <summary>
+        // Obtém ou define nome.
+        // </summary>
         public string Name { get; set; } = string.Empty;
 
+        // <summary>
+        // Obtém ou define email.
+        // </summary>
         public string Email { get; set; } = string.Empty;
 
         [Display(Name = "Telemóvel")]
+        // <summary>
+        // Obtém ou define telemóvel.
+        // </summary>
         public string? CellPhone { get; set; }
 
         [Required(ErrorMessage = "O cargo é obrigatório")]
         [Display(Name = "Cargo")]
+        // <summary>
+        // Obtém ou define perfil.
+        // </summary>
         public string Role { get; set; } = string.Empty;
     }
 }

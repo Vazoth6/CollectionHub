@@ -9,6 +9,9 @@ using CollectionHub.Data.Model;
 namespace CollectionHub.Pages.Admin.Users
 {
     [Authorize(Roles = "Admin")]
+    // <summary>
+    // Representa o modelo de dados utilizado para o index model.
+    // </summary>
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -20,8 +23,14 @@ namespace CollectionHub.Pages.Admin.Users
             _userManager = userManager;
         }
 
+        // <summary>
+        // Obtém ou define utilizadores.
+        // </summary>
         public List<UserAdminDto> Users { get; set; } = new();
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync()
         {
             Users = await _context.MyUsers
@@ -38,7 +47,10 @@ namespace CollectionHub.Pages.Admin.Users
                 .ToListAsync();
         }
 
-        // ⭐ MÉTODO POST PARA ELIMINAR UTILIZADOR DIRETAMENTE
+        // MÉTODO POST PARA ELIMINAR UTILIZADOR DIRETAMENTE
+        // <summary>
+        // Executa a operação de eliminação de utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostDeleteUserAsync(int userId)
         {
             try
@@ -57,7 +69,7 @@ namespace CollectionHub.Pages.Admin.Users
 
                 var identityUser = await _userManager.FindByIdAsync(myUser.UserID);
 
-                // Verificar transações ativas
+                // Verifica transações ativas
                 var hasActiveTransactions = myUser.Sales.Any(s => s.Status != "Entregue" && s.Status != "Cancelada") ||
                                             myUser.Purchases.Any(p => p.Status != "Entregue" && p.Status != "Cancelada");
 
@@ -67,7 +79,7 @@ namespace CollectionHub.Pages.Admin.Users
                     return RedirectToPage();
                 }
 
-                // Remover dependências
+                // Remove dependências
                 if (myUser.UserItems.Any())
                 {
                     _context.UserItems.RemoveRange(myUser.UserItems);
@@ -92,7 +104,7 @@ namespace CollectionHub.Pages.Admin.Users
                 _context.MyUsers.Remove(myUser);
                 await _context.SaveChangesAsync();
 
-                // Eliminar IdentityUser
+                // Elimina IdentityUser
                 if (identityUser != null)
                 {
                     var result = await _userManager.DeleteAsync(identityUser);
@@ -115,13 +127,34 @@ namespace CollectionHub.Pages.Admin.Users
         }
     }
 
+    // <summary>
+    // Representa os dados transferidos entre a interface/API e a aplicação para user admin dto.
+    // </summary>
     public class UserAdminDto
     {
+        // <summary>
+        // Obtém ou define id.
+        // </summary>
         public int Id { get; set; }
+        // <summary>
+        // Obtém ou define nome.
+        // </summary>
         public string Name { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define email.
+        // </summary>
         public string Email { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define telemóvel.
+        // </summary>
         public string? CellPhone { get; set; }
+        // <summary>
+        // Obtém ou define perfil.
+        // </summary>
         public string Role { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define data de registo.
+        // </summary>
         public DateTime RegisterDate { get; set; }
     }
 }

@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CollectionHub.Data.Migrations
 {
-    /// <inheritdoc />
+    // <inheritdoc />
     public partial class AddItemLikes : Migration
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -50,7 +50,7 @@ namespace CollectionHub.Data.Migrations
                 unique: true);
         }
 
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

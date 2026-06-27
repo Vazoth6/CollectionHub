@@ -1,4 +1,5 @@
-﻿@page "/Admin/Users"
+@* Página Razor da área administrativa, usada para consultar ou gerir dados da aplicação. *@
+@page "/Admin/Users"
 @model CollectionHub.Pages.Admin.Users.IndexModel
 @{
     ViewData["Title"] = "Gestão de Utilizadores";
@@ -84,7 +85,7 @@
                                         <a href="/Admin/Users/Edit/@user.Id" class="btn btn-outline-primary">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <!-- ⭐ FORMULÁRIO POST PARA ELIMINAR -->
+                                        <!-- FORMULÁRIO POST PARA ELIMINAR -->
                                         <form method="post" asp-page-handler="DeleteUser"
                                               onsubmit="return confirmDelete('@user.Name')"
                                               style="display:inline;">

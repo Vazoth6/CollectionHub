@@ -4,10 +4,10 @@
 
 namespace CollectionHub.Data.Migrations
 {
-    /// <inheritdoc />
+    // <inheritdoc />
     public partial class UserUpdate : Migration
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
@@ -84,7 +84,7 @@ namespace CollectionHub.Data.Migrations
                 onDelete: ReferentialAction.Cascade);
         }
 
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

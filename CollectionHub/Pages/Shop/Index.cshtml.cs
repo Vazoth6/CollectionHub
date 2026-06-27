@@ -7,6 +7,9 @@ using CollectionHub.Data.Model.DTOs;
 
 namespace CollectionHub.Pages.Shop
 {
+    // <summary>
+    // Representa o modelo de dados utilizado pelo index model.
+    // </summary>
     public class IndexModel : PageModel
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -18,46 +21,88 @@ namespace CollectionHub.Pages.Shop
             _configuration = configuration;
         }
 
+        // <summary>
+        // Obtém ou define artigos.
+        // </summary>
         public List<ItemResponseDto> Items { get; set; } = new();
+        // <summary>
+        // Obtém ou define lista de categorias.
+        // </summary>
         public List<SelectListItem> CategoriesList { get; set; } = new();
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define termo de pesquisa.
+        // </summary>
         public string? SearchTerm { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define id da categoria.
+        // </summary>
         public int? CategoryId { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define preço mínimo.
+        // </summary>
         public decimal? MinPrice { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define preço máximo.
+        // </summary>
         public decimal? MaxPrice { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define critério de ordenação.
+        // </summary>
         public string? SortBy { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define página atual.
+        // </summary>
         public int CurrentPage { get; set; } = 1;
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define categorias selecionadas.
+        // </summary>
         public List<string> SelectedCategories { get; set; } = new List<string>();
 
+        // <summary>
+        // Obtém ou define total de páginas.
+        // </summary>
         public int TotalPages { get; set; }
+        // <summary>
+        // Obtém ou define total de artigos.
+        // </summary>
         public int TotalItems { get; set; }
 
         // Lista de categorias carregadas da API (dinâmica)
+        // <summary>
+        // Obtém ou define categorias pré-definidas.
+        // </summary>
         public List<CategoryDisplayDto> PredefinedCategories { get; set; } = new();
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync()
         {
-            // Inicializar SelectedCategories se for null
+            // Inicializa SelectedCategories se for null
             SelectedCategories ??= new List<string>();
 
             await LoadCategories();
-            await LoadPredefinedCategories();  // Carregar categorias da API com ícones
+            await LoadPredefinedCategories();  // Carrega categorias da API com ícones
             await LoadItems();
         }
 
+        // <summary>
+        // Executa a operação de compra.
+        // </summary>
         public async Task<IActionResult> OnPostBuyAsync(int itemId, string shippingAddress)
         {
             if (!User.Identity.IsAuthenticated)
@@ -130,9 +175,9 @@ namespace CollectionHub.Pages.Shop
             }
         }
 
-        /// <summary>
-        /// Carrega as categorias da API e mapeia com os respetivos ícones
-        /// </summary>
+        // <summary>
+        // Carrega as categorias da API e mapeia com os respetivos ícones
+        // </summary>
         private async Task LoadPredefinedCategories()
         {
             try
@@ -150,7 +195,7 @@ namespace CollectionHub.Pages.Shop
                         PropertyNameCaseInsensitive = true
                     });
 
-                    // Mapear categorias com ícones baseados no nome
+                    // Mapeia categorias com ícones baseados no nome
                     PredefinedCategories = categories?.Select(c => new CategoryDisplayDto
                     {
                         Name = c.Name,
@@ -171,9 +216,9 @@ namespace CollectionHub.Pages.Shop
             }
         }
 
-        /// <summary>
-        /// Retorna o ícone correspondente à categoria
-        /// </summary>
+        // <summary>
+        // Retorna o ícone correspondente à categoria
+        // </summary>
         private string GetIconForCategory(string categoryName)
         {
             return categoryName switch
@@ -189,9 +234,9 @@ namespace CollectionHub.Pages.Shop
             };
         }
 
-        /// <summary>
-        /// Categorias de fallback em caso de erro na API
-        /// </summary>
+        // <summary>
+        // Categorias de fallback em caso de erro na API
+        // </summary>
         private List<CategoryDisplayDto> GetFallbackCategories()
         {
             return new List<CategoryDisplayDto>
@@ -213,7 +258,7 @@ namespace CollectionHub.Pages.Shop
                 var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
                 client.BaseAddress = new Uri(apiBaseUrl);
 
-                // Construir query string com suporte para múltiplas categorias
+                // Constrói query string com suporte para múltiplas categorias
                 var queryParameters = new List<string>();
 
                 if (!string.IsNullOrEmpty(SearchTerm))
@@ -234,7 +279,7 @@ namespace CollectionHub.Pages.Shop
                 queryParameters.Add($"Page={CurrentPage}");
                 queryParameters.Add($"PageSize=12");
 
-                // Adicionar categorias selecionadas à query (por nome)
+                // Adiciona categorias selecionadas à query (por nome)
                 if (SelectedCategories != null && SelectedCategories.Any())
                 {
                     foreach (var cat in SelectedCategories)
@@ -254,7 +299,7 @@ namespace CollectionHub.Pages.Shop
                         PropertyNameCaseInsensitive = true
                     }) ?? new List<ItemResponseDto>();
 
-                    // Obter headers de paginação
+                    // Obtém headers de paginação
                     if (response.Headers.TryGetValues("X-Total-Count", out var totalCountValues))
                     {
                         if (int.TryParse(totalCountValues.FirstOrDefault(), out int totalItems))
@@ -296,9 +341,18 @@ namespace CollectionHub.Pages.Shop
     }
 
     // DTO para exibição das categorias
+    // <summary>
+    // Representa os dados transferidos entre a interface/API e a aplicação para category display dto.
+    // </summary>
     public class CategoryDisplayDto
     {
+        // <summary>
+        // Obtém ou define nome.
+        // </summary>
         public string Name { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define ícone.
+        // </summary>
         public string Icon { get; set; } = string.Empty;
     }
 }

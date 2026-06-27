@@ -1,3 +1,4 @@
+// Configura a aplicação ASP.NET Core, os serviços, a autenticação, a base de dados e o pipeline HTTP.
 using System.Reflection;
 using CollectionHub.Data;
 using CollectionHub.Data.Seed;

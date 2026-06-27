@@ -9,6 +9,9 @@ namespace CollectionHub.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    // <summary>
+    // Controlador da API responsável pela consulta e gestão das categorias de artigos.
+    // </summary>
     public class CategoriesApiController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -18,10 +21,10 @@ namespace CollectionHub.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// GET: api/CategoriesApi
-        /// Obtém todas as categorias
-        /// </summary>
+        // <summary>
+        // GET: api/CategoriesApi
+        // Obtém todas as categorias
+        // </summary>
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetCategories()
@@ -38,10 +41,10 @@ namespace CollectionHub.Controllers
             return Ok(categories);
         }
 
-        /// <summary>
-        /// GET: api/CategoriesApi/5
-        /// Obtém uma categoria específica pelo ID
-        /// </summary>
+        // <summary>
+        // GET: api/CategoriesApi/5
+        // Obtém uma categoria específica pelo ID
+        // </summary>
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<ActionResult<CategoryDetailResponseDto>> GetCategory(int id)
@@ -71,10 +74,10 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// POST: api/CategoriesApi
-        /// Cria uma nova categoria (apenas Admin)
-        /// </summary>
+        // <summary>
+        // POST: api/CategoriesApi
+        // Cria uma nova categoria (apenas Admin)
+        // </summary>
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Category>> PostCategory([FromBody] CreateCategoryDto createCategoryDto)
@@ -84,7 +87,7 @@ namespace CollectionHub.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Verificar se já existe categoria com o mesmo nome
+            // Verifica se já existe categoria com o mesmo nome
             var existingCategory = await _context.Categories
                 .FirstOrDefaultAsync(c => c.Name == createCategoryDto.Name);
 
@@ -104,10 +107,10 @@ namespace CollectionHub.Controllers
             return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
         }
 
-        /// <summary>
-        /// PUT: api/CategoriesApi/5
-        /// Atualiza uma categoria (apenas Admin)
-        /// </summary>
+        // <summary>
+        // PUT: api/CategoriesApi/5
+        // Actualiza uma categoria (apenas Admin)
+        // </summary>
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutCategory(int id, [FromBody] UpdateCategoryDto updateCategoryDto)
@@ -123,7 +126,7 @@ namespace CollectionHub.Controllers
                 return NotFound(new { message = $"Categoria com ID {id} não encontrada." });
             }
 
-            // Verificar se o novo nome já existe (exceto a própria categoria)
+            // Verifica se o novo nome já existe (exceto a própria categoria)
             var existingCategory = await _context.Categories
                 .FirstOrDefaultAsync(c => c.Name == updateCategoryDto.Name && c.Id != id);
 
@@ -148,13 +151,13 @@ namespace CollectionHub.Controllers
                 throw;
             }
 
-            return Ok(new { message = "Categoria atualizada com sucesso.", category });
+            return Ok(new { message = "Categoria actualizada com sucesso.", category });
         }
 
-        /// <summary>
-        /// DELETE: api/CategoriesApi/5
-        /// Elimina uma categoria (apenas Admin)
-        /// </summary>
+        // <summary>
+        // DELETE: api/CategoriesApi/5
+        // Elimina uma categoria (apenas Admin)
+        // </summary>
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(int id)
@@ -168,10 +171,10 @@ namespace CollectionHub.Controllers
                 return NotFound(new { message = $"Categoria com ID {id} não encontrada." });
             }
 
-            // Verificar se existem itens nesta categoria
+            // Verifica se existem items nesta categoria
             if (category.Items.Any())
             {
-                return BadRequest(new { message = "Não é possível eliminar uma categoria que tem itens associados." });
+                return BadRequest(new { message = "Não é possível eliminar uma categoria que tem items associados." });
             }
 
             _context.Categories.Remove(category);

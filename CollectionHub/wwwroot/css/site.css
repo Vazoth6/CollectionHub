@@ -294,7 +294,7 @@ body {
         font-size: 1rem;
     }
 }
-/* CollectionHub shared page styling */
+/* Shared page styling */
 .page-shell,
 .auth-page {
     background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.14), transparent 32%),

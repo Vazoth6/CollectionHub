@@ -1,18 +1,18 @@
-﻿using CollectionHub.Data.Model;
+using CollectionHub.Data.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CollectionHub.Data.Seed
 {
-    /// <summary>
-    /// Classe responsável por inicializar a base de dados com dados de teste
-    /// </summary>
+    // <summary>
+    // Classe responsável por inicializar a base de dados com dados de teste
+    // </summary>
     public static class DbInitializer
     {   
-        /// <summary>
-        /// Inicializa a base de dados com dados de seed
-        /// </summary>
+        // <summary>
+        // Inicializa a base de dados com dados de seed
+        // </summary>
         public static async Task InitializeAsync(IServiceProvider serviceProvider)
         {
 
@@ -28,27 +28,27 @@ namespace CollectionHub.Data.Seed
             await context.Database.MigrateAsync();
 
             // =========================
-            // 1. Criar Roles
+            // 1. Cria Roles
             // =========================
             Console.WriteLine("A criar roles...");
             await CreateRolesAsync(roleManager);
 
             // =========================
-            // 2. Criar Utilizadores de Teste
+            // 2. Cria Utilizadores de Teste
             // =========================
             Console.WriteLine("A criar utilizadores...");
             await CreateTestUsersAsync(userManager, context);
 
             // =========================
-            // 3. Adicionar Categorias
+            // 3. Adiciona Categorias
             // =========================
             Console.WriteLine("A adicionar categorias...");
             await AddCategoriesAsync(context);
 
             // =========================
-            // 4. Adicionar Itens
+            // 4. Adiciona Items
             // =========================
-            Console.WriteLine("A adicionar itens...");
+            Console.WriteLine("A adicionar items...");
             await AddItemsAsync(context);
 
             Console.WriteLine("=== DB INITIALIZER CONCLUÍDO ===");
@@ -364,7 +364,7 @@ namespace CollectionHub.Data.Seed
                     context.Items.Add(item);
                     await context.SaveChangesAsync();
 
-                    // Associar o item ao vendedor (UserItem)
+                    // Associa o item ao vendedor (UserItem)
                     var userItem = new UserItem
                     {
                         UserId = vendedor.Id,

@@ -8,6 +8,9 @@ using CollectionHub.Data.Model;
 namespace CollectionHub.Pages.Admin.Transactions
 {
     [Authorize(Roles = "Admin")]
+    // <summary>
+    // Representa o modelo de dados utilizado para o index model.
+    // </summary>
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -19,23 +22,47 @@ namespace CollectionHub.Pages.Admin.Transactions
             _logger = logger;
         }
 
+        // <summary>
+        // Obtém ou define transações.
+        // </summary>
         public List<AdminTransactionDto> Transactions { get; set; } = new();
+        // <summary>
+        // Obtém ou define número total de páginas.
+        // </summary>
         public int TotalPages { get; set; }
+        // <summary>
+        // Obtém ou define página atual.
+        // </summary>
         public int CurrentPage { get; set; } = 1;
         private int PageSize = 20;
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define termo de pesquisa.
+        // </summary>
         public string? SearchTerm { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define estado.
+        // </summary>
         public string? Status { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define data de início.
+        // </summary>
         public DateTime? DateFrom { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define data de fim.
+        // </summary>
         public DateTime? DateTo { get; set; }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync(int page = 1)
         {
             CurrentPage = page;
@@ -46,7 +73,7 @@ namespace CollectionHub.Pages.Admin.Transactions
                 .Include(t => t.Seller)
                 .AsQueryable();
 
-            // Aplicar filtros
+            // Aplica filtros
             if (!string.IsNullOrEmpty(SearchTerm))
             {
                 var search = SearchTerm.ToLower();
@@ -82,7 +109,7 @@ namespace CollectionHub.Pages.Admin.Transactions
                 .Take(PageSize)
                 .ToListAsync();
 
-            // ⭐ Buscar emails dos utilizadores numa consulta separada (evita problemas com null propagating)
+            // Preenche emails dos utilizadores numa consulta separada (evita problemas com null propagating)
             var userIds = transactions
                 .Select(t => t.Buyer?.UserID)
                 .Where(id => !string.IsNullOrEmpty(id))
@@ -112,6 +139,9 @@ namespace CollectionHub.Pages.Admin.Transactions
             }).ToList();
         }
 
+        // <summary>
+        // Executa a operação de atualização de estado.
+        // </summary>
         public async Task<IActionResult> OnPostUpdateStatusAsync(int transactionId, string newStatus)
         {
             try
@@ -148,32 +178,74 @@ namespace CollectionHub.Pages.Admin.Transactions
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation($"Admin alterou status da transação {transactionId} para {newStatus}");
-                TempData["Success"] = $"Status da transação #{transactionId} atualizado para '{newStatus}' com sucesso!";
+                TempData["Success"] = $"Status da transação #{transactionId} actualizado para '{newStatus}' com sucesso!";
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Erro ao atualizar status: {ex.Message}");
-                TempData["Error"] = "Erro ao atualizar o status da transação.";
+                _logger.LogError($"Erro ao actualizar status: {ex.Message}");
+                TempData["Error"] = "Erro ao actualizar o status da transação.";
             }
 
             return RedirectToPage();
         }
     }
 
+    // <summary>
+    // Representa os dados transferidos entre a interface/API e a aplicação para admin transaction dto.
+    // </summary>
     public class AdminTransactionDto
     {
+        // <summary>
+        // Obtém ou define id.
+        // </summary>
         public int Id { get; set; }
+        // <summary>
+        // Obtém ou define data.
+        // </summary>
         public DateTime Date { get; set; }
+        // <summary>
+        // Obtém ou define preço.
+        // </summary>
         public decimal Price { get; set; }
+        // <summary>
+        // Obtém ou define estado.
+        // </summary>
         public string Status { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define método de pagamento.
+        // </summary>
         public string PaymentMethod { get; set; } = string.Empty;
+        // <summary>
+        // Indica se está pago.
+        // </summary>
         public bool IsPaid { get; set; }
+        // <summary>
+        // Obtém ou define endereço de envio.
+        // </summary>
         public string ShippingAddress { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define item id.
+        // </summary>
         public int ItemId { get; set; }
+        // <summary>
+        // Obtém ou define nome do item.
+        // </summary>
         public string ItemName { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define nome do comprador.
+        // </summary>
         public string BuyerName { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define email do comprador.
+        // </summary>
         public string BuyerEmail { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define nome do vendedor.
+        // </summary>
         public string SellerName { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define email do vendedor.
+        // </summary>
         public string SellerEmail { get; set; } = string.Empty;
     }
 }

@@ -11,6 +11,9 @@ namespace CollectionHub.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    // <summary>
+    // Controlador da API responsável pela consulta e gestão dos utilizadores.
+    // </summary>
     public class UsersApiController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -22,10 +25,10 @@ namespace CollectionHub.Controllers
             _userManager = userManager;
         }
 
-        /// <summary>
-        /// GET: api/UsersApi/Profile
-        /// Obtém o perfil do utilizador autenticado
-        /// </summary>
+        // <summary>
+        // GET: api/UsersApi/Profile
+        // Obtém o perfil do utilizador autenticado
+        // </summary>
         [HttpGet("Profile")]
         public async Task<ActionResult<object>> GetMyProfile()
         {
@@ -69,10 +72,10 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// GET: api/UsersApi/Profile/{id}
-        /// Obtém o perfil de um utilizador específico (apenas Admin)
-        /// </summary>
+        // <summary>
+        // GET: api/UsersApi/Profile/{id}
+        // Obtém o perfil de um utilizador específico (apenas Admin)
+        // </summary>
         [HttpGet("Profile/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<object>> GetUserProfile(int id)
@@ -100,10 +103,10 @@ namespace CollectionHub.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// GET: api/UsersApi/All
-        /// Obtém todos os utilizadores (apenas Admin)
-        /// </summary>
+        // <summary>
+        // GET: api/UsersApi/All
+        // Obtém todos os utilizadores (apenas Admin)
+        // </summary>
         [HttpGet("All")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<object>>> GetAllUsers()
@@ -123,10 +126,10 @@ namespace CollectionHub.Controllers
             return Ok(users);
         }
 
-        /// <summary>
-        /// PUT: api/UsersApi/Profile
-        /// Atualiza o perfil do utilizador autenticado
-        /// </summary>
+        // <summary>
+        // PUT: api/UsersApi/Profile
+        // Actualiza o perfil do utilizador autenticado
+        // </summary>
         [HttpPut("Profile")]
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateProfileDto updateProfileDto)
         {
@@ -167,13 +170,13 @@ namespace CollectionHub.Controllers
                 throw;
             }
 
-            return Ok(new { message = "Perfil atualizado com sucesso.", myUser });
+            return Ok(new { message = "Perfil actualizado com sucesso.", myUser });
         }
 
-        /// <summary>
-        /// PUT: api/UsersApi/Profile/Role/{userId}
-        /// Atualiza o role de um utilizador (apenas Admin)
-        /// </summary>
+        // <summary>
+        // PUT: api/UsersApi/Profile/Role/{userId}
+        // Actualiza o role de um utilizador (apenas Admin)
+        // </summary>
         [HttpPut("Profile/Role/{userId}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateUserRole(int userId, [FromBody] UpdateRoleDto updateRoleDto)
@@ -186,7 +189,7 @@ namespace CollectionHub.Controllers
                 return NotFound(new { message = $"Utilizador com ID {userId} não encontrado." });
             }
 
-            // Validar role
+            // Valida role
             var validRoles = new[] { "Utilizador", "Vendedor", "Admin" };
             if (!validRoles.Contains(updateRoleDto.Role))
             {
@@ -195,7 +198,7 @@ namespace CollectionHub.Controllers
 
             myUser.Role = updateRoleDto.Role;
 
-            // Atualizar também o role no Identity (opcional)
+            // Valida também o role no Identity
             var identityUser = await _userManager.FindByIdAsync(myUser.UserID);
             if (identityUser != null)
             {
@@ -206,20 +209,20 @@ namespace CollectionHub.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = $"Role do utilizador {myUser.Name} atualizado para {updateRoleDto.Role}." });
+            return Ok(new { message = $"Role do utilizador {myUser.Name} actualizado para {updateRoleDto.Role}." });
         }
 
-        /// <summary>
-        /// DELETE: api/UsersApi/Profile/{userId}
-        /// Elimina um utilizador (apenas Admin)
-        /// </summary>
+        // <summary>
+        // DELETE: api/UsersApi/Profile/{userId}
+        // Elimina um utilizador (apenas Admin)
+        // </summary>
         [HttpDelete("Profile/{userId}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int userId)
         {
             try
             {
-                // ⭐ 1. OBTER O MyUser COM TODAS AS RELAÇÕES
+                // 1. OBTÉM O MyUser COM TODAS AS RELAÇÕES
                 var myUser = await _context.MyUsers
                     .Include(u => u.UserItems)
                     .Include(u => u.Sales)
@@ -231,7 +234,7 @@ namespace CollectionHub.Controllers
                     return NotFound(new { message = $"Utilizador com ID {userId} não encontrado." });
                 }
 
-                // ⭐ 2. OBTER O IdentityUser ASSOCIADO
+                // 2. OBTÉM O IdentityUser ASSOCIADO
                 var identityUser = await _userManager.FindByIdAsync(myUser.UserID);
                 if (identityUser == null)
                 {
@@ -241,7 +244,7 @@ namespace CollectionHub.Controllers
                     return Ok(new { message = $"Utilizador {myUser.Name} eliminado com sucesso (apenas MyUser)." });
                 }
 
-                // ⭐ 3. VERIFICAR SE O UTILIZADOR TEM TRANSAÇÕES ATIVAS
+                // 3. VERIFICA SE O UTILIZADOR TEM TRANSAÇÕES ATIVAS
                 var hasActiveTransactions = myUser.Sales.Any(s => s.Status != "Entregue" && s.Status != "Cancelada") ||
                                             myUser.Purchases.Any(p => p.Status != "Entregue" && p.Status != "Cancelada");
 
@@ -250,18 +253,18 @@ namespace CollectionHub.Controllers
                     return BadRequest(new { message = "Não é possível eliminar um utilizador com transações pendentes." });
                 }
 
-                // ⭐ 4. REMOVER DEPENDÊNCIAS EM ORDEM CORRETA
+                // 4. REMOVE DEPENDÊNCIAS EM ORDEM CORRETA
 
-                // 4.1 - Remover UserItems
+                // 4.1 - Remove UserItems
                 if (myUser.UserItems.Any())
                 {
                     _context.UserItems.RemoveRange(myUser.UserItems);
                 }
 
-                // 4.2 - Remover Transações (Sales e Purchases)
+                // 4.2 - Remove Transações
                 if (myUser.Sales.Any())
                 {
-                    // Marcar os itens como disponíveis antes de remover as transações
+                    // Marca os itens como disponíveis antes de remover as transações
                     foreach (var sale in myUser.Sales)
                     {
                         if (sale.Item != null && sale.Status != "Concluída")
@@ -277,20 +280,20 @@ namespace CollectionHub.Controllers
                     _context.Transactions.RemoveRange(myUser.Purchases);
                 }
 
-                // 4.3 - Remover Likes (se existir a tabela ItemLikes)
+                // 4.3 - Remove Likes
                 var userLikes = _context.ItemLikes.Where(l => l.UserId == userId);
                 if (userLikes.Any())
                 {
                     _context.ItemLikes.RemoveRange(userLikes);
                 }
 
-                // 4.4 - Remover MyUser
+                // 4.4 - Remove MyUser
                 _context.MyUsers.Remove(myUser);
 
-                // ⭐ 5. GUARDAR ALTERAÇÕES ANTES DE ELIMINAR O IDENTITY USER
+                // 5. GUARDA ALTERAÇÕES ANTES DE ELIMINAR O IDENTITY USER
                 await _context.SaveChangesAsync();
 
-                // ⭐ 6. ELIMINAR O IDENTITY USER
+                // 6. ELIMINA O IDENTITY USER
                 var result = await _userManager.DeleteAsync(identityUser);
 
                 if (result.Succeeded)
@@ -314,10 +317,10 @@ namespace CollectionHub.Controllers
             }
         }
 
-        /// <summary>
-        /// GET: api/UsersApi/Sellers
-        /// Obtém todos os vendedores (para listar na criação de itens)
-        /// </summary>
+        // <summary>
+        // GET: api/UsersApi/Sellers
+        // Obtém todos os vendedores (para listar na criação de items)
+        // </summary>
         [HttpGet("Sellers")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<object>>> GetSellers()

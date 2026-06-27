@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CollectionHub.Data.Migrations
 {
-    /// <inheritdoc />
+    // <inheritdoc />
     public partial class InitialCreate : Migration
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -151,7 +151,7 @@ namespace CollectionHub.Data.Migrations
                 column: "ItemId");
         }
 
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

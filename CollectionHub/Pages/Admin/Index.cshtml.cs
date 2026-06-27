@@ -8,6 +8,9 @@ using CollectionHub.Data;
 namespace CollectionHub.Pages.Admin
 {
     [Authorize(Roles = "Admin")]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo index model.
+    // </summary>
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -19,13 +22,34 @@ namespace CollectionHub.Pages.Admin
             _userManager = userManager;
         }
 
+        // <summary>
+        // Obtém ou define total utilizadores.
+        // </summary>
         public int TotalUsers { get; set; }
+        // <summary>
+        // Obtém ou define total artigos.
+        // </summary>
         public int TotalItems { get; set; }
+        // <summary>
+        // Obtém ou define total transações.
+        // </summary>
         public int TotalTransactions { get; set; }
+        // <summary>
+        // Obtém ou define total da receita.
+        // </summary>
         public decimal TotalRevenue { get; set; }
+        // <summary>
+        // Obtém ou define atividades recentes.
+        // </summary>
         public List<RecentActivity> RecentActivities { get; set; } = new();
+        // <summary>
+        // Obtém ou define confirmações de email pendentes.
+        // </summary>
         public List<PendingEmailConfirmation> PendingEmailConfirmations { get; set; } = new();
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync()
         {
             TotalUsers = await _context.MyUsers.CountAsync();
@@ -35,10 +59,10 @@ namespace CollectionHub.Pages.Admin
                 .Where(t => t.Status == "Concluída")
                 .SumAsync(t => t.Price);
 
-            // ⭐ CARREGAR CONFIRMAÇÕES DE EMAIL PENDENTES
+            // CARREGA CONFIRMAÇÕES DE EMAIL PENDENTES
             await LoadPendingEmailConfirmations();
 
-            // Carregar atividades recentes (últimas 10 transações)
+            // Carrega atividades recentes (últimas 10 transações)
             var recentTransactions = await _context.Transactions
                 .Include(t => t.Item)
                 .Include(t => t.Buyer)
@@ -54,7 +78,7 @@ namespace CollectionHub.Pages.Admin
                 Icon = "bi-cart-check"
             }).ToList();
 
-            // Adicionar novos utilizadores à atividade
+            // Adiciona novos utilizadores à atividade
             var recentUsers = await _context.MyUsers
                 .OrderByDescending(u => u.RegisterDate)
                 .Take(5)
@@ -73,7 +97,7 @@ namespace CollectionHub.Pages.Admin
                 .ToList();
         }
 
-        // ⭐ CARREGAR UTILIZADORES COM EMAIL NÃO CONFIRMADO
+        // CARREGA UTILIZADORES COM EMAIL NÃO CONFIRMADO
         private async Task LoadPendingEmailConfirmations()
         {
             var users = await _userManager.Users.ToListAsync();
@@ -100,7 +124,10 @@ namespace CollectionHub.Pages.Admin
             PendingEmailConfirmations = pendingUsers;
         }
 
-        // ⭐ CONFIRMAR EMAIL (POST)
+        //  CONFIRMA EMAIL (POST)
+        // <summary>
+        // Executa a operação de confirmação de email.
+        // </summary>
         public async Task<IActionResult> OnPostConfirmEmailAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -116,7 +143,7 @@ namespace CollectionHub.Pages.Admin
                 return RedirectToPage();
             }
 
-            // Gerar token de confirmação
+            // Gera token de confirmação
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var result = await _userManager.ConfirmEmailAsync(user, token);
 
@@ -133,7 +160,10 @@ namespace CollectionHub.Pages.Admin
             return RedirectToPage();
         }
 
-        // ⭐ REENVIAR CONFIRMAÇÃO (POST)
+        // REENVIA CONFIRMAÇÃO (POST)
+        // <summary>
+        // Executa a operação de reenvio de confirmação de email.
+        // </summary>
         public async Task<IActionResult> OnPostResendConfirmationAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -149,9 +179,8 @@ namespace CollectionHub.Pages.Admin
                 return RedirectToPage();
             }
 
-            // Gerar novo token e enviar email
+            // Gera novo token e enviar email
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            // Aqui podes adicionar a lógica para enviar o email com o link
 
             var myUser = await _context.MyUsers.FirstOrDefaultAsync(m => m.UserID == userId);
             TempData["Success"] = $"Email de confirmação reenviado para '{myUser?.Name ?? user.Email}'.";
@@ -160,18 +189,45 @@ namespace CollectionHub.Pages.Admin
         }
     }
 
+    // <summary>
+    // Representa a atividade recente no domínio da aplicação.
+    // </summary>
     public class RecentActivity
     {
+        // <summary>
+        // Obtém ou define data.
+        // </summary>
         public DateTime Date { get; set; }
+        // <summary>
+        // Obtém ou define descrição.
+        // </summary>
         public string Description { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define ícone.
+        // </summary>
         public string Icon { get; set; } = "bi-info-circle";
     }
 
+    // <summary>
+    // Representa email não confirmado no domínio da aplicação.
+    // </summary>
     public class PendingEmailConfirmation
     {
+        // <summary>
+        // Obtém ou define user id.
+        // </summary>
         public string UserId { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define nome.
+        // </summary>
         public string Name { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define email.
+        // </summary>
         public string Email { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define data de registo.
+        // </summary>
         public DateTime RegisterDate { get; set; }
     }
 }

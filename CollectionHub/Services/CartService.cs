@@ -1,8 +1,11 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using CollectionHub.Models;
 
 namespace CollectionHub.Services
 {
+    // <summary>
+    // Serviço de domínio responsável por operações de carrinho, como adicionar, remover e calcular totais.
+    // </summary>
     public class CartService : ICartService
     {
         private const string CartSessionKey = "Cart";
@@ -13,6 +16,9 @@ namespace CollectionHub.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        // <summary>
+        // Obtém carrinho
+        // </summary>
         public ShoppingCart GetCart()
         {
             var session = _httpContextAccessor.HttpContext?.Session;
@@ -29,6 +35,9 @@ namespace CollectionHub.Services
             }) ?? new ShoppingCart();
         }
 
+        // <summary>
+        // Adiciona item ao carrinho. Se o item já estiver presente, apenas incrementa a quantidade
+        // </summary>
         public void AddToCart(CartItem item)
         {
             var cart = GetCart();
@@ -47,6 +56,9 @@ namespace CollectionHub.Services
             SaveCart(cart);
         }
 
+        // <summary>
+        // Actualiza a quantidade de um item no carrinho com base nos dados recebidos.
+        // </summary>
         public void UpdateQuantity(int itemId, int quantity)
         {
             var cart = GetCart();
@@ -70,6 +82,9 @@ namespace CollectionHub.Services
             SaveCart(cart);
         }
 
+        // <summary>
+        // Remove item do carrinho.
+        // </summary>
         public void RemoveFromCart(int itemId)
         {
             var cart = GetCart();
@@ -82,6 +97,9 @@ namespace CollectionHub.Services
             }
         }
 
+        // <summary>
+        // Executa a operação de limpeza do carrinho.
+        // </summary>
         public void ClearCart()
         {
             _httpContextAccessor.HttpContext?.Session.Remove(CartSessionKey);

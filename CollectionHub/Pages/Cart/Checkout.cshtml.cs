@@ -11,6 +11,9 @@ using Microsoft.EntityFrameworkCore;
 namespace CollectionHub.Pages.Cart
 {
     [Authorize]
+    // <summary>
+    // Representa o modelo de dados utilizado para o checkout model.
+    // </summary>
     public class CheckoutModel : PageModel
     {
         private readonly ICartService _cartService;
@@ -33,17 +36,35 @@ namespace CollectionHub.Pages.Cart
             _logger = logger;
         }
 
+        // <summary>
+        // Obtém ou define carrinho.
+        // </summary>
         public ShoppingCart Cart { get; set; } = new();
+        // <summary>
+        // Obtém ou define saldo da carteira.
+        // </summary>
         public decimal WalletBalance { get; set; }
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define endereço de entrega.
+        // </summary>
         public string ShippingAddress { get; set; } = string.Empty;
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define método de pagamento.
+        // </summary>
         public string PaymentMethod { get; set; } = "Carteira Virtual";
 
+        // <summary>
+        // Obtém ou define passo atual.
+        // </summary>
         public int CurrentStep { get; set; } = 1;
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync(int step = 1)
         {
             _logger.LogInformation($"=== ONGET STEP {step} ===");
@@ -59,11 +80,11 @@ namespace CollectionHub.Pages.Cart
             var user = await _context.MyUsers.FirstOrDefaultAsync(u => u.Id == userId);
             WalletBalance = user?.WalletBalance ?? 0;
 
-            // ⭐ RECUPERAR ENDEREÇO DO TempData COM KEEP
+            // RECUPERA ENDEREÇO DO TempData
             if (TempData.ContainsKey("ShippingAddress"))
             {
                 ShippingAddress = TempData["ShippingAddress"] as string ?? string.Empty;
-                // ⭐ MANTER O TempData PARA O PRÓXIMO REDIRECIONAMENTO
+                // MANTÉM O TempData PARA O PRÓXIMO REDIRECIONAMENTO
                 TempData.Keep("ShippingAddress");
                 _logger.LogInformation($"ShippingAddress recuperado do TempData: {ShippingAddress}");
             }
@@ -72,6 +93,9 @@ namespace CollectionHub.Pages.Cart
             return Page();
         }
 
+        // <summary>
+        // Executa a operação de avanço.
+        // </summary>
         public IActionResult OnPostNext(string shippingAddress)
         {
             _logger.LogInformation($"=== ONPOSTNEXT - Endereço: '{shippingAddress}' ===");
@@ -84,15 +108,18 @@ namespace CollectionHub.Pages.Cart
                 return Page();
             }
 
-            // ⭐ GUARDAR NO TempData COM KEEP
+            // GUARDA NO TempData
             TempData["ShippingAddress"] = shippingAddress;
-            // ⭐ FORÇAR A MANTER O TempData
+            // FORÇA A MANTER O TempData
             TempData.Keep("ShippingAddress");
             _logger.LogInformation($"ShippingAddress guardado no TempData: {shippingAddress}");
 
             return RedirectToPage(new { step = 2 });
         }
 
+        // <summary>
+        // Executa a operação de pagamento.
+        // </summary>
         public async Task<IActionResult> OnPostPaymentAsync(string paymentMethod)
         {
             _logger.LogInformation("=== ONPOSTPAYMENT ===");
@@ -138,7 +165,7 @@ namespace CollectionHub.Pages.Cart
                 return RedirectToPage(new { step = 2 });
             }
 
-            // ⭐ OBTER O COOKIE DE AUTENTICAÇÃO DA REQUISIÇÃO ATUAL
+            // OBTÉM O COOKIE DE AUTENTICAÇÃO DA REQUISIÇÃO ATUAL
             var cookie = Request.Headers["Cookie"].ToString();
             _logger.LogInformation($"Cookie presente: {!string.IsNullOrEmpty(cookie)}");
 
@@ -146,7 +173,7 @@ namespace CollectionHub.Pages.Cart
             var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
             client.BaseAddress = new Uri(apiBaseUrl);
 
-            // ⭐ ADICIONAR O COOKIE AO HTTPCLIENT
+            // ADICIONA O COOKIE AO HTTPCLIENT
             if (!string.IsNullOrEmpty(cookie))
             {
                 client.DefaultRequestHeaders.Add("Cookie", cookie);

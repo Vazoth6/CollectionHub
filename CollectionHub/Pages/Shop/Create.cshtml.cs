@@ -9,6 +9,9 @@ using CollectionHub.Data.Model.DTOs;
 namespace CollectionHub.Pages.Shop
 {
     [Authorize]
+    // <summary>
+    // Representa o modelo de dados utilizado pelo create model.
+    // </summary>
     public class CreateModel : PageModel
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -29,18 +32,33 @@ namespace CollectionHub.Pages.Shop
         }
 
         [BindProperty]
+        // <summary>
+        // Cria ou processa create item com base nos dados recebidos.
+        // </summary>
         public CreateItemDto CreateItem { get; set; } = new();
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define o ficheiro de imagem.
+        // </summary>
         public IFormFile? ImageFile { get; set; }
 
+        // <summary>
+        // Obtém ou define a lista de categories.
+        // </summary>
         public List<SelectListItem> CategoriesSelectList { get; set; } = new();
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync()
         {
             await LoadCategories();
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             try
@@ -53,7 +71,7 @@ namespace CollectionHub.Pages.Shop
                     return Page();
                 }
 
-                // ⭐ PROCESSAR IMAGEM
+                // PROCESSA IMAGEM
                 string? imageUrl = null;
                 if (ImageFile != null && ImageFile.Length > 0)
                 {
@@ -83,7 +101,7 @@ namespace CollectionHub.Pages.Shop
                     }
                 }
 
-                // ⭐ ENVIAR PARA API
+                // ENVIA PARA API
                 var cookie = Request.Headers["Cookie"].ToString();
                 var client = _httpClientFactory.CreateClient();
                 var apiBaseUrl = _configuration["ApiBaseUrl"] ?? "https://localhost:7102/";
@@ -185,12 +203,12 @@ namespace CollectionHub.Pages.Shop
             return Task.CompletedTask;
         }
 
-        // ⭐ MÉTODO DE UPLOAD - VERSÃO DEFINITIVA
+        // MÉTODO DE UPLOAD
         private async Task<string?> SaveImageAsync(IFormFile imageFile)
         {
             try
             {
-                // Criar pasta se não existir
+                // Cria pasta se não existir
                 var webRootPath = _webHostEnvironment.WebRootPath;
                 if (string.IsNullOrEmpty(webRootPath))
                 {
@@ -203,7 +221,7 @@ namespace CollectionHub.Pages.Shop
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                // Gerar nome único
+                // Gera nome único
                 var uniqueFileName = $"{Guid.NewGuid():N}_{DateTime.Now:yyyyMMddHHmmss}_{Path.GetFileName(imageFile.FileName)}";
                 var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 

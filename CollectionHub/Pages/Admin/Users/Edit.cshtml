@@ -1,4 +1,5 @@
-﻿@page "/Admin/Users/Edit/{id:int}"
+@* Página Razor da área administrativa, usada para consultar ou gerir dados da aplicação. *@
+@page "/Admin/Users/Edit/{id:int}"
 @model CollectionHub.Pages.Admin.Users.EditModel
 @{
     ViewData["Title"] = $"Editar Utilizador - {Model.EditUser?.Name}";

@@ -10,6 +10,9 @@ namespace CollectionHub.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    // <summary>
+    // Controlador da API responsável pela gestão dos items publicados na plataforma.
+    // </summary>
     public class ItemsApiController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -21,6 +24,9 @@ namespace CollectionHub.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        // <summary>
+        // Obtém items.
+        // </summary>
         public async Task<ActionResult<IEnumerable<ItemResponseDto>>> GetItems([FromQuery] ItemListQueryDto query)
         {
             var dbQuery = _context.Items
@@ -93,6 +99,9 @@ namespace CollectionHub.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
+        // <summary>
+        // Obtém item.
+        // </summary>
         public async Task<ActionResult<ItemResponseDto>> GetItem(int id)
         {
             var item = await _context.Items
@@ -124,6 +133,9 @@ namespace CollectionHub.Controllers
         }
 
         [HttpGet("User/MyItems")]
+        // <summary>
+        // Obtém os "meus" items.
+        // </summary>
         public async Task<ActionResult<IEnumerable<MyItemResponseDto>>> GetMyItems()
         {
             var myUserId = await GetCurrentMyUserId();
@@ -155,6 +167,9 @@ namespace CollectionHub.Controllers
         }
 
         [HttpPost]
+        // <summary>
+        // Cria ou processa item com base nos dados recebidos.
+        // </summary>
         public async Task<ActionResult<ItemResponseDto>> PostItem([FromBody] CreateItemDto createItemDto)
         {
             if (!ModelState.IsValid)
@@ -213,6 +228,9 @@ namespace CollectionHub.Controllers
         }
 
         [HttpPost("Buy/{id}")]
+        // <summary>
+        // Executa a operação de compra de um item.
+        // </summary>
         public async Task<IActionResult> BuyItem(int id, [FromBody] BuyItemRequest request)
         {
             var buyerId = await GetCurrentMyUserId();
@@ -322,12 +340,21 @@ namespace CollectionHub.Controllers
             });
         }
 
+        // <summary>
+        // Representa o buy item request no domínio da aplicação.
+        // </summary>
         public class BuyItemRequest
         {
+            // <summary>
+            // Obtém ou define a morada de envio.
+            // </summary>
             public string ShippingAddress { get; set; } = string.Empty;
         }
 
         [HttpPut("{id}")]
+        // <summary>
+        // Actualiza um item com base nos dados recebidos.
+        // </summary>
         public async Task<IActionResult> PutItem(int id, [FromBody] UpdateItemDto updateItemDto)
         {
             if (id != updateItemDto.Id)
@@ -369,10 +396,13 @@ namespace CollectionHub.Controllers
                 throw;
             }
 
-            return Ok(new { message = "Item atualizado com sucesso.", item });
+            return Ok(new { message = "Item actualizado com sucesso.", item });
         }
 
         [HttpDelete("{id}")]
+        // <summary>
+        // Remove um item.
+        // </summary>
         public async Task<IActionResult> DeleteItem(int id)
         {
             var item = await _context.Items.FindAsync(id);
@@ -405,6 +435,9 @@ namespace CollectionHub.Controllers
 
         [HttpGet("Categories/{categoryId}")]
         [AllowAnonymous]
+        // <summary>
+        // Obtém items por categoria.
+        // </summary>
         public async Task<ActionResult<IEnumerable<ItemResponseDto>>> GetItemsByCategory(int categoryId)
         {
             var items = await _context.Items

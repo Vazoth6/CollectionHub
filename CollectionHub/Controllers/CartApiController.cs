@@ -1,4 +1,4 @@
-﻿using CollectionHub.Models;
+using CollectionHub.Models;
 using CollectionHub.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +7,9 @@ namespace CollectionHub.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    // <summary>
+    // Controlador da API responsável pela gestão do carrinho de compras do utilizador autenticado.
+    // </summary>
     public class CartApiController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -16,9 +19,9 @@ namespace CollectionHub.Controllers
             _cartService = cartService;
         }
 
-        /// <summary>
-        /// Devolve o carrinho guardado na sessão atual.
-        /// </summary>
+        // <summary>
+        // Devolve o carrinho guardado na sessão atual.
+        // </summary>
         [HttpGet]
         [ProducesResponseType(typeof(ShoppingCart), StatusCodes.Status200OK)]
         public IActionResult Get()
@@ -26,9 +29,9 @@ namespace CollectionHub.Controllers
             return Ok(_cartService.GetCart());
         }
 
-        /// <summary>
-        /// Atualiza a quantidade de um item no carrinho. Se a quantidade for zero, o item é removido.
-        /// </summary>
+        // <summary>
+        // Actualiza a quantidade de cada item no carrinho. Se a quantidade for zero, o item é removido.
+        // </summary>
         [HttpPost("update-quantity")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult UpdateQuantity([FromBody] CartQuantityRequest request)
@@ -44,9 +47,9 @@ namespace CollectionHub.Controllers
             });
         }
 
-        /// <summary>
-        /// Remove um item do carrinho da sessão atual.
-        /// </summary>
+        // <summary>
+        // Remove um item do carrinho da sessão atual.
+        // </summary>
         [HttpPost("remove")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult Remove([FromBody] CartItemRequest request)
@@ -62,9 +65,9 @@ namespace CollectionHub.Controllers
             });
         }
 
-        /// <summary>
-        /// Limpa todos os itens do carrinho da sessão atual.
-        /// </summary>
+        // <summary>
+        // Limpa todos os items do carrinho da sessão atual.
+        // </summary>
         [HttpPost("clear")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult Clear()
@@ -74,13 +77,25 @@ namespace CollectionHub.Controllers
         }
     }
 
+    // <summary>
+    // Representa cart item request no domínio da aplicação.
+    // </summary>
     public class CartItemRequest
     {
+        // <summary>
+        // Obtém ou define item identificador.
+        // </summary>
         public int ItemId { get; set; }
     }
 
+    // <summary>
+    // Representa cart quantity request no domínio da aplicação.
+    // </summary>
     public class CartQuantityRequest : CartItemRequest
     {
+        // <summary>
+        // Obtém ou define quantidade.
+        // </summary>
         public int Quantity { get; set; }
     }
 }

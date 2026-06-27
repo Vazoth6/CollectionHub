@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CollectionHub.Data.Migrations
 {
-    /// <inheritdoc />
+    // <inheritdoc />
     public partial class TransactionUserModelUpdate : Migration
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<bool>(
@@ -39,7 +39,7 @@ namespace CollectionHub.Data.Migrations
                 defaultValue: 0m);
         }
 
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(

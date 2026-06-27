@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 namespace CollectionHub.Areas.Identity.Pages.Account.Manage
 {
     [Authorize]
+    // <summary>
+    // Representa o modelo de dados utilizado por change password model.
+    // </summary>
     public class ChangePasswordModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
@@ -25,30 +28,51 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
         }
 
         [BindProperty]
+        // <summary>
+        // Obtém ou define input.
+        // </summary>
         public InputModel Input { get; set; }
 
         [TempData]
+        // <summary>
+        // Obtém ou define mensagem do estado.
+        // </summary>
         public string StatusMessage { get; set; }
 
+        // <summary>
+        // Representa o modelo de dados utilizado pelo input model.
+        // </summary>
         public class InputModel
         {
             [Required(ErrorMessage = "A password atual é obrigatória.")]
             [DataType(DataType.Password)]
             [Display(Name = "Password Atual")]
+            // <summary>
+            // Obtém ou define palavra-passe antiga.
+            // </summary>
             public string OldPassword { get; set; }
 
             [Required(ErrorMessage = "A nova password é obrigatória.")]
             [StringLength(100, ErrorMessage = "A password deve ter pelo menos {2} caracteres.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Nova Password")]
+            // <summary>
+            // Obtém ou define nova palavra-passe.
+            // </summary>
             public string NewPassword { get; set; }
 
             [DataType(DataType.Password)]
             [Display(Name = "Confirmar Nova Password")]
             [Compare("NewPassword", ErrorMessage = "As passwords não coincidem.")]
+            // <summary>
+            // Obtém ou define palavra-passe de confirmação.
+            // </summary>
             public string ConfirmPassword { get; set; }
         }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -60,6 +84,9 @@ namespace CollectionHub.Areas.Identity.Pages.Account.Manage
             return Page();
         }
 
+        // <summary>
+        // Processa o formulário submetido pelo utilizador.
+        // </summary>
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)

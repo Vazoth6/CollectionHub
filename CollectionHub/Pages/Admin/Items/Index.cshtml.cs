@@ -8,6 +8,9 @@ using CollectionHub.Data.Model;
 namespace CollectionHub.Pages.Admin.Items
 {
     [Authorize(Roles = "Admin")]
+    // <summary>
+    // Representa o modelo de dados utilizado para o index model.
+    // </summary>
     public class IndexModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -17,18 +20,39 @@ namespace CollectionHub.Pages.Admin.Items
             _context = context;
         }
 
+        // <summary>
+        // Obtém ou define items.
+        // </summary>
         public List<AdminItemDto> Items { get; set; } = new();
+        // <summary>
+        // Obtém ou define categorias.
+        // </summary>
         public List<Category> Categories { get; set; } = new();
+        // <summary>
+        // Obtém ou define total de páginas.
+        // </summary>
         public int TotalPages { get; set; }
+        // <summary>
+        // Obtém ou define página atual.
+        // </summary>
         public int CurrentPage { get; set; } = 1;
         private int PageSize = 15;
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define termo de pesquisa.
+        // </summary>
         public string? SearchTerm { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        // <summary>
+        // Obtém ou define id da categoria.
+        // </summary>
         public int? CategoryId { get; set; }
 
+        // <summary>
+        // Carrega os dados necessários para apresentar a página ao utilizador.
+        // </summary>
         public async Task OnGetAsync(int page = 1)
         {
             CurrentPage = page;
@@ -74,15 +98,42 @@ namespace CollectionHub.Pages.Admin.Items
         }
     }
 
+    // <summary>
+    // Representa os dados transferidos entre a interface/API e a aplicação para admin item dto.
+    // </summary>
     public class AdminItemDto
     {
+        // <summary>
+        // Obtém ou define id.
+        // </summary>
         public int Id { get; set; }
+        // <summary>
+        // Obtém ou define nome.
+        // </summary>
         public string Name { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define preço.
+        // </summary>
         public decimal Price { get; set; }
+        // <summary>
+        // Obtém ou define estado.
+        // </summary>
         public string Status { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define endereço da imagem.
+        // </summary>
         public string? ImageUrl { get; set; }
+        // <summary>
+        // Obtém ou define nome da categoria.
+        // </summary>
         public string CategoryName { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define nome do vendedor.
+        // </summary>
         public string SellerName { get; set; } = string.Empty;
+        // <summary>
+        // Obtém ou define data de submissão.
+        // </summary>
         public DateTime SubmittedAt { get; set; }
     }
 }

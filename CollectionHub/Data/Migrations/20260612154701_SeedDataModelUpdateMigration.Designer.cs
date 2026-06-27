@@ -15,7 +15,7 @@ namespace CollectionHub.Data.Migrations
     [Migration("20260612154701_SeedDataModelUpdateMigration")]
     partial class SeedDataModelUpdateMigration
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

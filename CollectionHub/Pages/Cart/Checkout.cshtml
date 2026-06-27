@@ -1,4 +1,5 @@
-﻿@page
+@* Página Razor relacionada com o carrinho de compras e o processo de checkout. *@
+@page
 @model CollectionHub.Pages.Cart.CheckoutModel
 @{
     ViewData["Title"] = "Checkout";
@@ -168,7 +169,7 @@
                                     <i class="bi bi-credit-card"></i> Método de Pagamento
                                 </h5>
 
-                                <!-- ⭐ SALDO DISPONÍVEL -->
+                                <!-- SALDO DISPONÍVEL -->
                                 <div class="alert alert-info mb-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
@@ -180,7 +181,7 @@
                                     <small class="text-muted">Este valor será deduzido da sua carteira virtual.</small>
                                 </div>
 
-                                <!-- ⭐ SALDO APÓS COMPRA -->
+                                <!-- SALDO APÓS COMPRA -->
                                 <div class="alert alert-secondary mb-4">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span>Após a compra ficará com:</span>
@@ -190,16 +191,16 @@
                                     </div>
                                 </div>
 
-                                <!-- ⭐ ENDEREÇO DE ENTREGA (READONLY + HIDDEN) -->
+                                <!-- ENDEREÇO DE ENTREGA (READONLY + HIDDEN) -->
                                 <div class="alert alert-light border mb-4">
                                     <strong><i class="bi bi-geo-alt"></i> Endereço de Entrega:</strong>
                                     <p class="mb-0 mt-1">@Model.ShippingAddress</p>
-                                    <!-- ⭐ CAMPO HIDDEN PARA MANTER O ENDEREÇO -->
+                                    <!-- CAMPO HIDDEN PARA MANTER O ENDEREÇO -->
                                     <input type="hidden" asp-for="ShippingAddress" />
                                 </div>
 
                                 <div class="payment-methods">
-                                    <!-- ⭐ CARTEIRA VIRTUAL (ATIVO) -->
+                                    <!-- CARTEIRA VIRTUAL (ATIVO) -->
                                     <div class="payment-option selected">
                                         <input type="radio" name="PaymentMethod" id="carteira" value="Carteira Virtual" checked>
                                         <label for="carteira">
@@ -214,7 +215,7 @@
                                         </label>
                                     </div>
 
-                                    <!-- ⭐ MBWAY (DESABILITADO) -->
+                                    <!-- MBWAY (DESABILITADO) -->
                                     <div class="payment-option disabled">
                                         <input type="radio" name="PaymentMethod" id="mbway" value="MBWay" disabled>
                                         <label for="mbway" style="opacity: 0.6; cursor: not-allowed;">
@@ -229,7 +230,7 @@
                                         </label>
                                     </div>
 
-                                    <!-- ⭐ MULTIBANCO (DESABILITADO) -->
+                                    <!-- MULTIBANCO (DESABILITADO) -->
                                     <div class="payment-option disabled">
                                         <input type="radio" name="PaymentMethod" id="multibanco" value="Multibanco" disabled>
                                         <label for="multibanco" style="opacity: 0.6; cursor: not-allowed;">
@@ -244,7 +245,7 @@
                                         </label>
                                     </div>
 
-                                    <!-- ⭐ CARTÃO DE CRÉDITO (DESABILITADO) -->
+                                    <!-- CARTÃO DE CRÉDITO (DESABILITADO) -->
                                     <div class="payment-option disabled">
                                         <input type="radio" name="PaymentMethod" id="cartao" value="Cartao" disabled>
                                         <label for="cartao" style="opacity: 0.6; cursor: not-allowed;">
@@ -541,7 +542,7 @@
             window.location.href = '/Cart/Checkout?step=1';
         }
 
-        // ⭐ CLICK NAS OPÇÕES DE PAGAMENTO
+        // CLICK NAS OPÇÕES DE PAGAMENTO
         document.querySelectorAll('.payment-option:not(.disabled)').forEach(option => {
             option.addEventListener('click', function() {
                 const radio = this.querySelector('input[type="radio"]');
@@ -553,7 +554,7 @@
             });
         });
 
-        // ⭐ VALIDAÇÃO ANTES DE SUBMETER
+        // VALIDAÇÃO ANTES DE SUBMETER
         document.getElementById('paymentForm')?.addEventListener('submit', function(e) {
             console.log('Submetendo formulário de pagamento...');
             // O formulário vai ser submetido normalmente

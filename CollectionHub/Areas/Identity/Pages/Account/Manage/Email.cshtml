@@ -1,4 +1,5 @@
-﻿@page
+@* Página Razor da área de identidade, usada para autenticação e gestão da conta do utilizador. *@
+@page
 @model EmailModel
 @{
     ViewData["Title"] = "Gerir Email";
@@ -182,7 +183,7 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // ⭐ VALIDAÇÃO EM TEMPO REAL PARA CONFIRMAR EMAIL
+        // VALIDAÇÃO EM TEMPO REAL PARA CONFIRMAR EMAIL
         document.addEventListener('DOMContentLoaded', function() {
             const newEmail = document.getElementById('Input_NewEmail');
             const confirmEmail = document.getElementById('Input_ConfirmEmail');

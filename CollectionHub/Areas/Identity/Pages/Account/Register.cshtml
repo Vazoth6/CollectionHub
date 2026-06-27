@@ -1,3 +1,4 @@
+@* Página Razor da área de identidade, usada para autenticação e gestão da conta do utilizador. *@
 @page
 @model RegisterModel
 
@@ -21,7 +22,7 @@
                     <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
 
-                        <!-- ⭐ NOME COMPLETO -->
+                        <!-- NOME COMPLETO -->
                         <div class="form-floating mb-3">
                             <input asp-for="Input.Name"
                                    class="form-control rounded-3"
@@ -32,7 +33,7 @@
                             <span asp-validation-for="Input.Name" class="text-danger small"></span>
                         </div>
 
-                        <!-- ⭐ EMAIL -->
+                        <!-- EMAIL -->
                         <div class="form-floating mb-3">
                             <input asp-for="Input.Email"
                                    class="form-control rounded-3"
@@ -43,7 +44,7 @@
                             <span asp-validation-for="Input.Email" class="text-danger small"></span>
                         </div>
 
-                        <!-- ⭐ TELEMÓVEL (opcional) -->
+                        <!-- TELEMÓVEL (opcional) -->
                         <div class="form-floating mb-3">
                             <input asp-for="Input.CellPhone"
                                    class="form-control rounded-3"
@@ -53,7 +54,7 @@
                             <span asp-validation-for="Input.CellPhone" class="text-danger small"></span>
                         </div>
 
-                        <!-- ⭐ PASSWORD -->
+                        <!-- PASSWORD -->
                         <div class="form-floating mb-3">
                             <input asp-for="Input.Password"
                                    class="form-control rounded-3"
@@ -64,7 +65,7 @@
                             <span asp-validation-for="Input.Password" class="text-danger small"></span>
                         </div>
 
-                        <!-- ⭐ CONFIRMAR PASSWORD -->
+                        <!-- CONFIRMAR PASSWORD -->
                         <div class="form-floating mb-3">
                             <input asp-for="Input.ConfirmPassword"
                                    class="form-control rounded-3"

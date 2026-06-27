@@ -15,7 +15,7 @@ namespace CollectionHub.Data.Migrations
     [Migration("20260525091555_UserUpdate")]
     partial class UserUpdate
     {
-        /// <inheritdoc />
+        // <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
