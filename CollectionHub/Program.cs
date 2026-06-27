@@ -1,5 +1,3 @@
-// Configura a aplicação ASP.NET Core, os serviços, a autenticação, a base de dados e o pipeline HTTP.
-using System.Reflection;
 using CollectionHub.Data;
 using CollectionHub.Data.Seed;
 using CollectionHub.Services;
@@ -56,14 +54,6 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "API da aplicação CollectionHub"
     });
-
-    // Inclui os comentários XML dos controllers no Swagger, quando o ficheiro existir no build.
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-    {
-        options.IncludeXmlComments(xmlPath);
-    }
 });
 
 var app = builder.Build();
@@ -82,7 +72,11 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error");
-    app.UseHsts();
+}
+
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
 }
 
 app.UseHttpsRedirection();
@@ -102,6 +96,23 @@ app.MapRazorPages()
    .WithStaticAssets();
 
 app.MapControllers();
+
+if (app.Environment.IsProduction())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+            Console.WriteLine("Migrações aplicadas com sucesso!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao aplicar migrações: {ex.Message}");
+        }
+    }
+}
 
 await app.SeedDatabaseAsync();
 
